@@ -11,6 +11,7 @@
   },
   "private": true,
   "dependencies": {
+    "3d-force-graph": "^1.67.6",
     "@angular/animations": "~11.0.1",
     "@angular/common": "~11.0.1",
     "@angular/compiler": "~11.0.1",
@@ -20,7 +21,12 @@
     "@angular/platform-browser-dynamic": "~11.0.1",
     "@angular/router": "~11.0.1",
     "rxjs": "~6.6.0",
+    "three": "^0.123.0",
     "tslib": "^2.0.0",
+    "vis-data": "^7.1.1",
+    "vis-network": "^8.5.4",
+    "vis-util": "^4.3.4",
+    "vis-utils": "^0.2.1",
     "zone.js": "~0.10.2"
   },
   "devDependencies": {

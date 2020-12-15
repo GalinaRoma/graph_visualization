@@ -124,5 +124,8 @@
       }
     }
   },
-  "defaultProject": "vis-graph"
+  "defaultProject": "vis-graph",
+  "cli": {
+    "analytics": "a7a4f7ab-ca16-478d-9f7b-ddfb91a7f0c7"
+  }
 }

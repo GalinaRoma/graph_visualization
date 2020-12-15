@@ -1,0 +1,14 @@
+.main-nav {
+  justify-content: space-around;
+  display: flex;
+  max-width: 100%;
+  margin: 10px 0;
+}
+
+.button {
+  background: orange;
+  color: black;
+  border: 0;
+  border-radius: 4px;
+  padding: 10px 20px;
+}
