@@ -52,6 +52,27 @@ export class Graph2dComponent implements OnInit {
     };
 
     this.graph2D = new Network(this.container as HTMLElement, graphData, options);
+    this.graph2D.on('selectNode', (params) => {
+      if (params.nodes.length === 1) {
+        if (this.graph2D?.isCluster(params.nodes[0]) === true) {
+          this.graph2D.openCluster(params.nodes[0]);
+        }
+      }
+    });
+
+    // const clusterOptionsByData = {
+    //   processProperties: (clusterOptions: any, childNodes: any) => {
+    //     clusterOptions.label = '[' + childNodes.length + ']';
+    //     return clusterOptions;
+    //   },
+    //   clusterNodeProperties: {
+    //     borderWidth: 3,
+    //     shape: 'box',
+    //     font: { size: 30 },
+    //   },
+    // };
+    // this.graph2D.clusterByHubsize(3, clusterOptionsByData);
+
   }
 
   /**

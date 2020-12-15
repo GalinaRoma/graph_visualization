@@ -54,6 +54,9 @@ export interface Node3DInitData extends NodeInitData {
    * Links with neighbors.
    */
   links?: Graph3DEdge[];
+
+  childLinks?: Graph3DEdge[];
+  collapsed?: boolean;
 }
 
 /**
@@ -118,6 +121,8 @@ export class Graph3DNode extends GraphNode {
    * Links with neighbors.
    */
   public links: Graph3DEdge[];
+  public childLinks: Graph3DEdge[];
+  public collapsed: boolean;
 
   public constructor(data: Node3DInitData) {
     super(data);
@@ -127,5 +132,7 @@ export class Graph3DNode extends GraphNode {
     this.fz = data?.fz;
     this.neighbors = [];
     this.links = [];
+    this.childLinks = [];
+    this.collapsed = data.collapsed || false;
   }
 }

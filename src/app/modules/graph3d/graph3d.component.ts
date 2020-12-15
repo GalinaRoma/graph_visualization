@@ -63,7 +63,7 @@ export class Graph3dComponent implements OnInit {
       .linkThreeObject(link => {
         const material = new THREE.LineBasicMaterial({
           color: highlightLinks.has(link) ? this.orangeColor : this.blackColor,
-          linewidth: highlightLinks.has(link) ? 4 : 2,
+          linewidth: highlightLinks.has(link) ? 2 : 1,
         });
         const geometry = new THREE.BufferGeometry();
 
@@ -133,6 +133,67 @@ export class Graph3dComponent implements OnInit {
     }
 
     localStorage.setItem(this.nameToSave, JSON.stringify(results));
+  }
+
+  private clustering(): void {
+    // const rootId = '5a5fd258-4093-448c-9010-a728802fcf93'
+    // const graphData = this.dataStorageService.get3DGraphDataByLayout(layout, this.nameToSave);
+    //
+    // graphData.nodes.map(node => {
+    //   if (node.id === '5a5fd258-4093-448c-9010-a728802fcf93') {
+    //     node.collapsed = true;
+    //     return node;
+    //   }
+    //   return node;
+    // });
+    //
+    // console.log(graphData);
+    // // link parent/children
+    // const nodesById = Object.fromEntries(graphData.nodes.map(node => [node.id, node]));
+    // graphData.links.forEach(link => {
+    //   nodesById[link.source].childLinks.push(link);
+    // });
+    //
+    // const getPrunedTree = () => {
+    //   const visibleNodes = [];
+    //   const visibleLinks = [];
+    //
+    //   // tslint:disable-next-line:typedef
+    //   (function traverseTree(node = nodesById[rootId]) {
+    //     visibleNodes.push(node);
+    //     if (node.collapsed) return;
+    //     visibleLinks.push(...node.childLinks);
+    //     node.childLinks
+    //       .map(link => ((typeof link.target) === 'object') ? link.target : nodesById[link.target]) // get child node
+    //       .forEach(traverseTree);
+    //   })(); // IIFE
+    //
+    //   return { nodes: visibleNodes, links: visibleLinks };
+    // };
+    //
+    // const Graph = ForceGraph3D()(this.container as HTMLElement)
+    //   .graphData(getPrunedTree())
+    //   .linkDirectionalParticles(2)
+    //   // @ts-ignore
+    //   .nodeColor(node => !node.childLinks.length ? 'green' : node.collapsed ? 'red' : 'yellow')
+    //   // @ts-ignore
+    //   .onNodeHover(node => this.container.style.cursor = node && node.childLinks.length ? 'pointer' : null)
+    //   .onNodeClick(node => {
+    //     // @ts-ignore
+    //     if (node.childLinks.length) {
+    //       // @ts-ignore
+    //       node.collapsed = !node.collapsed; // toggle collapse state
+    //       // @ts-ignore
+    //       Graph.graphData(getPrunedTree());
+    //     }
+    //   });
+  }
+
+  /**
+   * Clear saved graph with updated positions.
+   */
+  public clearSavedGraph(): void {
+    localStorage.removeItem(this.nameToSave);
   }
 
   private updateHighlight(graph: ForceGraph3DInstance): void {
