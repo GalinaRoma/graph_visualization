@@ -5,6 +5,7 @@ import { GraphNode } from '../../core/models/node';
 import { EdgeDto } from '../../core/services/dto/edge-dto';
 import { GraphEdge } from '../../core/models/edge';
 import { DataStorageService } from '../../core/services/data-storage.service';
+import { Position } from 'vis-network/declarations/network/Network';
 
 @Component({
   selector: 'app-graph2d',
@@ -53,25 +54,55 @@ export class Graph2dComponent implements OnInit {
 
     this.graph2D = new Network(this.container as HTMLElement, graphData, options);
     this.graph2D.on('selectNode', (params) => {
+      // const results = {
+      //   nodes: [] as NodeDto[],
+      //   edges: [] as EdgeDto[],
+      // };
+      // // @ts-ignore
+      // const { nodes, edges } = this.graph2D.body;
+      //
+      // const clusterNodes = this.graph2D?.getNodesInCluster(params.nodes[0]);
+      // for (const nodeId of clusterNodes) {
+      //   const node = nodes[nodeId];
+      //   results.nodes.push(node);
+      //   const edgesId = this.graph2D?.getConnectedEdges(nodeId);
+      //   for (const edgeId of edgesId) {
+      //       const edge = edges[edgeId];
+      //       if (results.edges.filter(edge => edge.id === edgeId).length === 0) {
+      //         results.edges.push(edge);
+      //       }
+      //   }
+      // }
+      // this.graph2D?.setData(results);
+
       if (params.nodes.length === 1) {
         if (this.graph2D?.isCluster(params.nodes[0]) === true) {
-          this.graph2D.openCluster(params.nodes[0]);
+          this.graph2D.openCluster(params.nodes[0], {
+            releaseFunction: (
+              clusterPosition: Position,
+              containedNodesPositions: { [nodeId: string]: Position }) => {
+              const nodeId = Object.keys(containedNodesPositions)[0];
+              const position = containedNodesPositions[nodeId];
+
+              return { nodeId: position };
+            }
+          });
         }
       }
     });
 
-    // const clusterOptionsByData = {
-    //   processProperties: (clusterOptions: any, childNodes: any) => {
-    //     clusterOptions.label = '[' + childNodes.length + ']';
-    //     return clusterOptions;
-    //   },
-    //   clusterNodeProperties: {
-    //     borderWidth: 3,
-    //     shape: 'box',
-    //     font: { size: 30 },
-    //   },
-    // };
-    // this.graph2D.clusterByHubsize(3, clusterOptionsByData);
+    const clusterOptionsByData = {
+      processProperties: (clusterOptions: any, childNodes: any) => {
+        clusterOptions.label = '[' + childNodes.length + ']';
+        return clusterOptions;
+      },
+      clusterNodeProperties: {
+        borderWidth: 3,
+        shape: 'box',
+        font: { size: 30 },
+      },
+    };
+    this.graph2D.clusterByHubsize(3, clusterOptionsByData);
 
   }
 
