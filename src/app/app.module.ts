@@ -6,17 +6,23 @@ import { AppComponent } from './app.component';
 import { Graph2dComponent } from './modules/graph2d/graph2d.component';
 import { Graph3dComponent } from './modules/graph3d/graph3d.component';
 import { HomeComponent } from './modules/home/home.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import {InfoDialogComponent} from './modules/info-dialog/info-dialog.component';
+import {DemoMaterialModule} from './material.module';
 
 @NgModule({
   declarations: [
     AppComponent,
     Graph2dComponent,
     Graph3dComponent,
-    HomeComponent
+    HomeComponent,
+    InfoDialogComponent
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    BrowserAnimationsModule,
+    DemoMaterialModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

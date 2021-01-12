@@ -24,6 +24,10 @@ export interface NodeInitData {
    * Node type.
    */
   type?: string | null;
+  children?: GraphNode[] | null;
+  networks: {ip: string, mask: string}[] | null;
+  interfaces: {ip: string, mask: string}[] | null;
+
 }
 
 /**
@@ -84,12 +88,29 @@ export class GraphNode {
    */
   public type: string | null;
 
+  public children: GraphNode[] | null;
+  public networks: {ip: string, mask: string}[] | null;
+  public interfaces: {ip: string, mask: string}[] | null;
+
+  public image: string;
+
   public constructor(data: NodeInitData) {
     this.id = data.id;
     this.name = data.name || null;
     this.type = data.type || null;
+    this.children = data.children || null;
+    this.networks = data.networks || null;
+    this.interfaces = data.interfaces || null;
     this.x = data.x || 0;
     this.y = data.y || 0;
+    this.image =
+      data.type === 'router' ?
+        '../assets/router.svg' :
+        data.type === 'switch' ?
+          '../assets/switch.svg' :
+          data.type === 'network' ?
+            '../assets/molecular.svg' :
+            '../assets/pc.svg';
   }
 }
 

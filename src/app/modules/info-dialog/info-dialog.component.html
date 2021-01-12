@@ -1,0 +1,19 @@
+<h1>Device information</h1>
+<div>
+  <p>Name {{ data.name }}</p>
+  <p>Type {{ data.type }}</p>
+  <div *ngIf="data.type !== 'router' && data.type !== 'network' && data.networks && data.networks[0]">
+    <p>IP address {{ data.networks[0].ip }}</p>
+    <p>Mask {{ data.networks[0].mask }}</p>
+  </div>
+  <div *ngIf="data.type === 'router'">
+    Interfaces
+    <div *ngFor="let interface_a of data.interfaces">
+      <p>IP address {{ interface_a.ip }}</p>
+      <p>Mask {{ interface_a.mask }}</p>
+    </div>
+  </div>
+</div>
+<div>
+  <button (click)="onNoClick()">Ok</button>
+</div>
