@@ -1,27 +1,25 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import {HttpClientModule} from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { Graph2dComponent } from './modules/graph2d/graph2d.component';
-import { Graph3dComponent } from './modules/graph3d/graph3d.component';
-import { HomeComponent } from './modules/home/home.component';
+import { GraphComponent } from './modules/graph/graph.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import {InfoDialogComponent} from './modules/info-dialog/info-dialog.component';
-import {DemoMaterialModule} from './material.module';
+import { InfoDialogComponent } from './modules/info-dialog/info-dialog.component';
+import { DemoMaterialModule } from './material.module';
 
 @NgModule({
   declarations: [
     AppComponent,
-    Graph2dComponent,
-    Graph3dComponent,
-    HomeComponent,
+    GraphComponent,
     InfoDialogComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
+    HttpClientModule,
     DemoMaterialModule,
   ],
   providers: [],
