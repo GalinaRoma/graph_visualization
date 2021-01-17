@@ -23,6 +23,7 @@ export class DataStorageService {
   public getFlatGraph(): Observable<GraphData> {
     return this.http.get('http://127.0.0.1:5000/flat-graph')
       .pipe(map(json => {
+        console.log(json);
         const nodes = [];
         const edges = [];
 
@@ -106,5 +107,14 @@ export class DataStorageService {
 
         return new Graph3dData({ nodes, links });
       }));
+  }
+
+  public saveGraph(nodes: GraphNode[]): Observable<any> {
+    return this.http.post('http://127.0.0.1:5000/flat-graph', nodes);
+  }
+
+
+  public saveMultilevelGraph(nodes: GraphNode[]): Observable<any> {
+    return this.http.post('http://127.0.0.1:5000/multilevel-graph', nodes);
   }
 }

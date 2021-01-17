@@ -1,8 +1,12 @@
 <nav class="nav-panel">
-  <button (click)="drawGraph()" class="button">Network</button>
-  <button (click)="drawLevelGraph('sfdp')" class="button">Group by ip</button>
-  <button (click)="saveGraph()" class="button">Save changes</button>
-  <button (click)="drawCircoGraph()" class="button">Circo layout</button>
-  <button (click)="draw3DGraph()" class="button">3D</button>
+  <select name="displayMode" (change)="setDisplayMode($event.target['value'])">
+    <option value="sfdp" selected>SFDP layout</option>
+    <option value="multilevel">Group by ip</option>
+    <option value="circo">Circo layout</option>
+    <option value="3d">3D</option>
+  </select>
+  <div *ngIf="displayMode === 'sfdp' || displayMode === 'multilevel'">
+    <button (click)="saveGraph()" class="button">Save changes</button>
+  </div>
 </nav>
 <div id="graph-container"></div>

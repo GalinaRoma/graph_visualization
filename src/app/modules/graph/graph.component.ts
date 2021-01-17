@@ -21,9 +21,12 @@ export class GraphComponent implements OnInit {
   private orangeColor = '#FF8C00';
   private blackColor = '#404040';
   private imageUrl = '../assets/pc.svg';
-  private nameToSave = 'sfdp2D';
   private graph2D: Network | undefined;
   private graph3d: ForceGraph3DInstance | undefined;
+
+  public displayMode = 'sfdp';
+  private graphData: GraphData;
+  private allMultiLevelGraph: GraphData;
 
   constructor(private dataStorageService: DataStorageService,
               public dialog: MatDialog) {}
@@ -34,6 +37,24 @@ export class GraphComponent implements OnInit {
   public ngOnInit(): void {
     this.container = document.getElementById('graph-container');
     this.drawGraph();
+  }
+
+  public setDisplayMode(mode: string) {
+    this.displayMode = mode;
+    switch (this.displayMode) {
+      case 'sfdp':
+        this.drawGraph();
+        break;
+      case 'multilevel':
+        this.drawLevelGraph();
+        break;
+      case 'circo':
+        this.drawCircoGraph();
+        break;
+      case '3d':
+        this.draw3DGraph();
+        break;
+    }
   }
 
   public draw3DGraph(): void {
@@ -112,6 +133,7 @@ export class GraphComponent implements OnInit {
   public drawGraph(): void {
     this.dataStorageService.getFlatGraph()
       .subscribe(graphData => {
+        this.graphData = graphData;
         const options = {
           physics: {
             enabled: false
@@ -155,9 +177,10 @@ export class GraphComponent implements OnInit {
       });
   }
 
-  public drawLevelGraph(layout: string): void {
+  public drawLevelGraph(): void {
     this.dataStorageService.getMultiLevelGraph()
       .subscribe(graphData => {
+        this.allMultiLevelGraph = graphData;
         const options = {
           physics: {
             enabled: false
@@ -224,35 +247,51 @@ export class GraphComponent implements OnInit {
       return;
     }
 
-    const results = {
-      nodes: [] as NodeDto[],
-      edges: [] as EdgeDto[],
-    };
-    // @ts-ignore
-    const { nodes, edges } = this.graph2D.body;
-
-    for (const node of Object.values(nodes)) {
-      // To avoid nodes which vis.js add to nodes array (with id start with edgeId:)
+    if (this.displayMode === 'sfdp') {
       // @ts-ignore
-      if (!node.parentEdgeId) {
-        results.nodes.push({
-          id: (node as GraphNode).id,
-          x: (node as GraphNode).x,
-          y: (node as GraphNode).y,
-        });
-      }
-    }
+      const { nodes } = this.graph2D.body;
 
-    for (const edge of Object.values(edges)) {
-      results.edges.push({
-        id: (edge as GraphEdge).id,
+      this.graphData.nodes.map(node => {
         // @ts-ignore
-        source: edge.fromId,
-        // @ts-ignore
-        target: edge.toId,
+        const updatedNode = Object.values(nodes).find(graphNode => graphNode.id === node.id);
+        if (updatedNode) {
+          // @ts-ignore
+          node.x = updatedNode.x;
+          // @ts-ignore
+          node.y = updatedNode.y;
+        }
       });
-    }
 
-    localStorage.setItem(this.nameToSave, JSON.stringify(results));
+      this.dataStorageService.saveGraph(this.graphData.nodes)
+        .subscribe();
+    } else {
+      // @ts-ignore
+      const { nodes } = this.graph2D.body;
+
+      this.allMultiLevelGraph.nodes.map(graphNode => {
+        const a = Object.values(nodes).find(node => node.id === graphNode.id);
+        if (a) {
+          // @ts-ignore
+          graphNode.x = a.x;
+          // @ts-ignore
+          graphNode.y = a.y;
+        } else {
+          // @ts-ignore
+          for (const child of graphNode.children) {
+            // @ts-ignore
+            const b = Object.values(nodes).find(node => node.id === child.id);
+            if (b) {
+              // @ts-ignore
+              child.x = b.x;
+              // @ts-ignore
+              child.y = b.y;
+            }
+          }
+        }
+        return graphNode;
+    });
+      this.dataStorageService.saveMultilevelGraph(this.allMultiLevelGraph.nodes)
+        .subscribe();
+    }
   }
 }
