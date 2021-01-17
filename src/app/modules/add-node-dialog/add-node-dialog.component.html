@@ -1,0 +1,25 @@
+<h1>Add device</h1>
+<div>
+  <div>
+    <label>ID
+      <input name="id" formControlName="id"/>
+    </label>
+    <label>Name
+      <input formControlName="name"/>
+    </label>
+    <label>Type
+      <select formControlName="type">
+        <option value="host" selected>Host</option>
+        <option value="router">Router</option>
+        <option value="switch">Switch</option>
+        <option value="network">Network</option>
+      </select>
+    </label>
+    <label>IP<input formControlName="ip"/></label>
+    <label>Mask<input formControlName="mask"/></label>
+  </div>
+  <div>
+    <button (click)="saveData()">Save</button>
+    <button (click)="onCancel()">Cancel</button>
+  </div>
+</div>

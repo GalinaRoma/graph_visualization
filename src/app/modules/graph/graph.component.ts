@@ -10,6 +10,8 @@ import {MatDialog} from '@angular/material/dialog';
 import {InfoDialogComponent} from '../info-dialog/info-dialog.component';
 import ForceGraph3D, {ForceGraph3DInstance} from '3d-force-graph';
 import * as THREE from 'three';
+import {AddNodeDialogComponent} from '../add-node-dialog/add-node-dialog.component';
+import {AddEdgeDialogComponent} from '../add-edge-dialog/add-edge-dialog.component';
 
 @Component({
   selector: 'app-graph2d',
@@ -25,8 +27,30 @@ export class GraphComponent implements OnInit {
   private graph3d: ForceGraph3DInstance | undefined;
 
   public displayMode = 'sfdp';
+  // @ts-ignore
   private graphData: GraphData;
+  // @ts-ignore
   private allMultiLevelGraph: GraphData;
+
+  // @ts-ignore
+  private selectedNodeId: string;
+
+  private options = {
+    physics: {
+      enabled: false
+    },
+    nodes: {
+      shape: 'image',
+      image: this.imageUrl,
+    },
+    edges: {
+      color: {
+        color: this.blackColor,
+        highlight: this.orangeColor,
+      },
+    },
+    interaction: { keyboard: true },
+  };
 
   constructor(private dataStorageService: DataStorageService,
               public dialog: MatDialog) {}
@@ -37,9 +61,20 @@ export class GraphComponent implements OnInit {
   public ngOnInit(): void {
     this.container = document.getElementById('graph-container');
     this.drawGraph();
+    setInterval(() => {
+      this.dataStorageService.getFlatGraph()
+        .subscribe(graphData => {
+          if (this.displayMode === 'sfdp') {
+            this.graph2D?.setData(graphData);
+          }
+        });
+    }, 10000);
   }
 
-  public setDisplayMode(mode: string) {
+  /**
+   * qwe
+   */
+  public setDisplayMode(mode: string): void {
     this.displayMode = mode;
     switch (this.displayMode) {
       case 'sfdp':
@@ -134,23 +169,50 @@ export class GraphComponent implements OnInit {
     this.dataStorageService.getFlatGraph()
       .subscribe(graphData => {
         this.graphData = graphData;
-        const options = {
-          physics: {
-            enabled: false
-          },
-          nodes: {
-            shape: 'image',
-            image: this.imageUrl,
-          },
-          edges: {
-            color: {
-              color: this.blackColor,
-              highlight: this.orangeColor,
-            },
-          }
-        };
 
-        this.graph2D = new Network(this.container as HTMLElement, graphData, options);
+        this.graph2D = new Network(this.container as HTMLElement, graphData, this.options);
+
+        this.graph2D.on('selectNode', async (params) => {
+          if (params.nodes.length > 0) {
+            if (!this.selectedNodeId) {
+              this.selectedNodeId = params.nodes[0];
+            } else {
+              const newEdge = {sourceId: this.selectedNodeId, targetId: params.nodes[0]};
+              const dialog = this.dialog.open(AddEdgeDialogComponent, {
+                width: '300px',
+                data: newEdge,
+              });
+
+              dialog.afterClosed().subscribe(result => {
+                if (result) {
+                  this.dataStorageService.addEdge(newEdge).subscribe();
+                }
+                // @ts-ignore
+                this.selectedNodeId = undefined;
+              });
+            }
+          }
+        });
+        this.graph2D.on('doubleClick', async (params) => {
+          const elem = graphData.nodes.filter(node => node.id === params.nodes[0])[0];
+
+          await this.openDialog(elem);
+
+        });
+        this.graph2D.on('click', (params) => {
+          if (params.nodes.length === 0) {
+            const dialog = this.dialog.open(AddNodeDialogComponent, {
+              width: '300px',
+              data: { x: params.event.pointers[0].clientX, y: params.event.pointers[0].clientY },
+            });
+
+            dialog.afterClosed().subscribe(result => {
+              if (result) {
+                this.dataStorageService.addNode(result.result).subscribe();
+              }
+            });
+          }
+        });
       });
   }
 
@@ -269,6 +331,7 @@ export class GraphComponent implements OnInit {
       const { nodes } = this.graph2D.body;
 
       this.allMultiLevelGraph.nodes.map(graphNode => {
+        // @ts-ignore
         const a = Object.values(nodes).find(node => node.id === graphNode.id);
         if (a) {
           // @ts-ignore
