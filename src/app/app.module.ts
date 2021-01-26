@@ -9,7 +9,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { InfoDialogComponent } from './modules/info-dialog/info-dialog.component';
 import { DemoMaterialModule } from './material.module';
 import {AddNodeDialogComponent} from './modules/add-node-dialog/add-node-dialog.component';
-import {AddEdgeDialogComponent} from './modules/add-edge-dialog/add-edge-dialog.component';
 
 @NgModule({
   declarations: [
@@ -17,7 +16,6 @@ import {AddEdgeDialogComponent} from './modules/add-edge-dialog/add-edge-dialog.
     GraphComponent,
     InfoDialogComponent,
     AddNodeDialogComponent,
-    AddEdgeDialogComponent,
   ],
   imports: [
     BrowserModule,

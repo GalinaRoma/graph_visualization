@@ -122,8 +122,4 @@ export class DataStorageService {
   public addNode(node: GraphNode): Observable<any> {
     return this.http.put('http://127.0.0.1:5000/flat-graph', node);
   }
-
-  public addEdge(edge: {sourceId: string, targetId: string}): Observable<any> {
-    return this.http.put('http://127.0.0.1:5000/flat-edge-graph', edge);
-  }
 }

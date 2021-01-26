@@ -11,7 +11,7 @@ export class AddNodeDialogComponent {
   id = 50;
   constructor(
     public dialogRef: MatDialogRef<AddNodeDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { x: number, y: number}) {
+  ) {
   }
 
   onCancel(): void {
@@ -27,11 +27,9 @@ export class AddNodeDialogComponent {
         type: 'host',
         interfaces: [],
         networks: [{
-          ip: '192.168.10.1',
-          mask: '255.255.255.0',
+          ip: '10.10.4.2',
+          mask: '255.255.255.252',
         }],
-        x: this.data.x,
-        y: this.data.y,
       }),
     });
   }

@@ -11,7 +11,6 @@ import {InfoDialogComponent} from '../info-dialog/info-dialog.component';
 import ForceGraph3D, {ForceGraph3DInstance} from '3d-force-graph';
 import * as THREE from 'three';
 import {AddNodeDialogComponent} from '../add-node-dialog/add-node-dialog.component';
-import {AddEdgeDialogComponent} from '../add-edge-dialog/add-edge-dialog.component';
 
 @Component({
   selector: 'app-graph2d',
@@ -33,7 +32,7 @@ export class GraphComponent implements OnInit {
   private allMultiLevelGraph: GraphData;
 
   // @ts-ignore
-  private selectedNodeId: string;
+  public selectedNode: GraphNode;
 
   private options = {
     physics: {
@@ -68,14 +67,49 @@ export class GraphComponent implements OnInit {
             this.graph2D?.setData(graphData);
           }
         });
+      this.dataStorageService.getMultiLevelGraph()
+        .subscribe(graphData => {
+          if (this.displayMode === 'multilevel') {
+            let newGraphData = graphData;
+            if (this.selectedNode) {
+              const elem = graphData.nodes.filter(node => node.id === this.selectedNode.id)[0];
+              newGraphData = this.createGraphForChild(elem);
+            }
+            this.graph2D?.setData(newGraphData);
+          }
+        });
     }, 10000);
+  }
+
+  public back(): void {
+    this.dataStorageService.getMultiLevelGraph()
+      .subscribe(graphData => {
+        if (this.displayMode === 'multilevel') {
+          this.graph2D?.setData(graphData);
+          // @ts-ignore
+          this.selectedNode = undefined;
+        }
+      });
+  }
+
+  public addNode(): void {
+    const dialog = this.dialog.open(AddNodeDialogComponent, {
+      width: '300px',
+    });
+
+    dialog.afterClosed().subscribe(result => {
+      if (result) {
+        this.dataStorageService.addNode(result.result).subscribe();
+      }
+    });
   }
 
   /**
    * qwe
    */
-  public setDisplayMode(mode: string): void {
-    this.displayMode = mode;
+  public setDisplayMode(mode: Event): void {
+    // @ts-ignore
+    this.displayMode = mode.target.value;
     switch (this.displayMode) {
       case 'sfdp':
         this.drawGraph();
@@ -173,45 +207,9 @@ export class GraphComponent implements OnInit {
         this.graph2D = new Network(this.container as HTMLElement, graphData, this.options);
 
         this.graph2D.on('selectNode', async (params) => {
-          if (params.nodes.length > 0) {
-            if (!this.selectedNodeId) {
-              this.selectedNodeId = params.nodes[0];
-            } else {
-              const newEdge = {sourceId: this.selectedNodeId, targetId: params.nodes[0]};
-              const dialog = this.dialog.open(AddEdgeDialogComponent, {
-                width: '300px',
-                data: newEdge,
-              });
-
-              dialog.afterClosed().subscribe(result => {
-                if (result) {
-                  this.dataStorageService.addEdge(newEdge).subscribe();
-                }
-                // @ts-ignore
-                this.selectedNodeId = undefined;
-              });
-            }
-          }
-        });
-        this.graph2D.on('doubleClick', async (params) => {
           const elem = graphData.nodes.filter(node => node.id === params.nodes[0])[0];
 
           await this.openDialog(elem);
-
-        });
-        this.graph2D.on('click', (params) => {
-          if (params.nodes.length === 0) {
-            const dialog = this.dialog.open(AddNodeDialogComponent, {
-              width: '300px',
-              data: { x: params.event.pointers[0].clientX, y: params.event.pointers[0].clientY },
-            });
-
-            dialog.afterClosed().subscribe(result => {
-              if (result) {
-                this.dataStorageService.addNode(result.result).subscribe();
-              }
-            });
-          }
         });
       });
   }
@@ -263,30 +261,36 @@ export class GraphComponent implements OnInit {
 
         this.graph2D.on('selectNode', async (params) => {
           const elem = graphData.nodes.filter(node => node.id === params.nodes[0])[0];
-          const nodes = [];
-          const edges = [];
 
           if (elem.children && elem.children.length > 0) {
-            for (const node of elem.children) {
-              nodes.push(new GraphNode(node));
-              // @ts-ignore
-              for (const neighbor of node.neighbors) {
-                edges.push(new GraphEdge({
-                  id: `${node.id}-${neighbor}`,
-                  from: node.id,
-                  to: neighbor,
-                }));
-              }
-            }
+            this.selectedNode = elem;
+            const newGraphData = this.createGraphForChild(elem);
 
-            graphData = new GraphData({ nodes, edges });
-
-            this.graph2D?.setData(graphData);
+            this.graph2D?.setData(newGraphData);
           } else {
             await this.openDialog(elem);
           }
         });
     });
+  }
+
+  public createGraphForChild(elem: GraphNode): GraphData {
+    const nodes = [];
+    const edges = [];
+
+    for (const node of elem.children || []) {
+      nodes.push(new GraphNode(node));
+      // @ts-ignore
+      for (const neighbor of node.neighbors) {
+        edges.push(new GraphEdge({
+          id: `${node.id}-${neighbor}`,
+          from: node.id,
+          to: neighbor,
+        }));
+      }
+    }
+
+    return new GraphData({ nodes, edges });
   }
 
 
