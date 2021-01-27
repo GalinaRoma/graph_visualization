@@ -1,22 +1,31 @@
 <h1>Add device</h1>
 <div>
-  <div>
-    <label>ID
-      <input name="id" formControlName="id"/>
-    </label>
-    <label>Name
-      <input formControlName="name"/>
-    </label>
-    <label>Type
-      <select formControlName="type">
-        <option value="host" selected>Host</option>
-        <option value="router">Router</option>
-        <option value="switch">Switch</option>
-        <option value="network">Network</option>
-      </select>
-    </label>
-    <label>IP<input formControlName="ip"/></label>
-    <label>Mask<input formControlName="mask"/></label>
+  <div class="column">
+    <div class="row">
+      <label>Name
+        <input [formControl]="name"/>
+      </label>
+    </div>
+    <div class="row">
+      <label>Type
+        <select [formControl]="type">
+          <option value="host" selected>Host</option>
+          <option value="router">Router</option>
+          <option value="switch">Switch</option>
+          <option value="network">Network</option>
+        </select>
+      </label>
+    </div>
+    <div class="row">
+      <label>IP
+        <input [formControl]="ip"/>
+      </label>
+    </div>
+    <div class="row">
+      <label>Mask
+        <input [formControl]="mask"/>
+      </label>
+    </div>
   </div>
   <div>
     <button (click)="saveData()">Save</button>

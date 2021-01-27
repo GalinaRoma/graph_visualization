@@ -9,6 +9,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { InfoDialogComponent } from './modules/info-dialog/info-dialog.component';
 import { DemoMaterialModule } from './material.module';
 import {AddNodeDialogComponent} from './modules/add-node-dialog/add-node-dialog.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -23,6 +24,7 @@ import {AddNodeDialogComponent} from './modules/add-node-dialog/add-node-dialog.
     BrowserAnimationsModule,
     HttpClientModule,
     DemoMaterialModule,
+    ReactiveFormsModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -8,7 +8,10 @@ import {FormControl, FormGroup, Validators} from '@angular/forms';
   templateUrl: 'add-node-dialog.component.html',
 })
 export class AddNodeDialogComponent {
-  id = 50;
+  name = new FormControl('');
+  type = new FormControl('');
+  ip = new FormControl('');
+  mask = new FormControl('');
   constructor(
     public dialogRef: MatDialogRef<AddNodeDialogComponent>,
   ) {
@@ -19,16 +22,17 @@ export class AddNodeDialogComponent {
   }
 
   saveData() {
-    this.id += 1;
+    const random = 51; // TODO: random of id
+    const id = `${this.type.value.substring(0, 1).toLowerCase()}${random}`;
     this.dialogRef.close({
       result: new GraphNode({
-        id: `h${this.id}`,
-        name: 'Host 50',
-        type: 'host',
+        id,
+        name: this.name.value,
+        type: this.type.value,
         interfaces: [],
         networks: [{
-          ip: '10.10.4.2',
-          mask: '255.255.255.252',
+          ip: this.ip.value,
+          mask: this.mask.value,
         }],
       }),
     });
