@@ -11,6 +11,7 @@ import {InfoDialogComponent} from '../info-dialog/info-dialog.component';
 import ForceGraph3D, {ForceGraph3DInstance} from '3d-force-graph';
 import * as THREE from 'three';
 import {AddNodeDialogComponent} from '../add-node-dialog/add-node-dialog.component';
+import {FormControl} from '@angular/forms';
 
 @Component({
   selector: 'app-graph2d',
@@ -54,6 +55,8 @@ export class GraphComponent implements OnInit {
   constructor(private dataStorageService: DataStorageService,
               public dialog: MatDialog) {}
 
+  public filter = new FormControl(null);
+
   /**
    * @inheritDoc
    */
@@ -61,13 +64,13 @@ export class GraphComponent implements OnInit {
     this.container = document.getElementById('graph-container');
     this.drawGraph();
     setInterval(() => {
-      this.dataStorageService.getFlatGraph()
+      this.dataStorageService.getFlatGraph(this.filter.value)
         .subscribe(graphData => {
           if (this.displayMode === 'sfdp') {
             this.graph2D?.setData(graphData);
           }
         });
-      this.dataStorageService.getMultiLevelGraph()
+      this.dataStorageService.getMultiLevelGraph(this.filter.value)
         .subscribe(graphData => {
           if (this.displayMode === 'multilevel') {
             let newGraphData = graphData;
@@ -78,11 +81,11 @@ export class GraphComponent implements OnInit {
             this.graph2D?.setData(newGraphData);
           }
         });
-    }, 10000);
+    }, 3000);
   }
 
   public back(): void {
-    this.dataStorageService.getMultiLevelGraph()
+    this.dataStorageService.getMultiLevelGraph(this.filter.value)
       .subscribe(graphData => {
         if (this.displayMode === 'multilevel') {
           this.graph2D?.setData(graphData);
@@ -200,7 +203,7 @@ export class GraphComponent implements OnInit {
   }
 
   public drawGraph(): void {
-    this.dataStorageService.getFlatGraph()
+    this.dataStorageService.getFlatGraph(this.filter.value)
       .subscribe(graphData => {
         this.graphData = graphData;
 
@@ -238,7 +241,7 @@ export class GraphComponent implements OnInit {
   }
 
   public drawLevelGraph(): void {
-    this.dataStorageService.getMultiLevelGraph()
+    this.dataStorageService.getMultiLevelGraph(this.filter.value)
       .subscribe(graphData => {
         this.allMultiLevelGraph = graphData;
         const options = {

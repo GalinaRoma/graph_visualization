@@ -5,6 +5,11 @@
     <option value="circo">Circo layout</option>
     <option value="3d">3D</option>
   </select>
+  <select [formControl]="filter">
+    <option value="null" selected>All</option>
+    <option value="true">Approved</option>
+    <option value="false">Not approved</option>
+  </select>
   <div *ngIf="displayMode === 'sfdp' || displayMode === 'multilevel'">
     <button *ngIf="displayMode === 'multilevel' && selectedNode" (click)="back()" class="button">Back</button>
     <button (click)="addNode()" class="button">Add node</button>

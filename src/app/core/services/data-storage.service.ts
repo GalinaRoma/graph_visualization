@@ -20,10 +20,9 @@ import { Graph3DEdge } from '../models/edge-3d';
 export class DataStorageService {
   constructor(private http: HttpClient) {}
 
-  public getFlatGraph(): Observable<GraphData> {
-    return this.http.get('http://127.0.0.1:5000/flat-graph')
+  public getFlatGraph(filter: boolean | null): Observable<GraphData> {
+    return this.http.get(`http://127.0.0.1:5000/flat-graph?filter=${filter}`)
       .pipe(map(json => {
-        console.log(json);
         const nodes = [];
         const edges = [];
 
@@ -65,8 +64,8 @@ export class DataStorageService {
       }));
   }
 
-  public getMultiLevelGraph(): Observable<GraphData> {
-    return this.http.get('http://127.0.0.1:5000/multilevel-graph')
+  public getMultiLevelGraph(filter: boolean | null): Observable<GraphData> {
+    return this.http.get(`http://127.0.0.1:5000/multilevel-graph?filter=${filter}`)
       .pipe(map(json => {
         const nodes = [];
         const edges = [];
