@@ -5,14 +5,22 @@
     <option value="circo">Circo layout</option>
     <option value="3d">3D</option>
   </select>
-  <select [formControl]="filter">
-    <option value="null" selected>All</option>
-    <option value="true">Approved</option>
-    <option value="false">Not approved</option>
-  </select>
+<!--  <ngx-datetime-range-picker-->
+<!--    name="date"-->
+<!--    [options]="{}"-->
+<!--    [settings]="datePickerSettings"-->
+<!--    [(dateRangeModel)]="selectedDate"-->
+<!--    (dateRangeChanged)="onFilterChange($event)"-->
+<!--  >-->
+<!--  </ngx-datetime-range-picker>-->
   <div *ngIf="displayMode === 'sfdp' || displayMode === 'multilevel'">
     <button *ngIf="displayMode === 'multilevel' && selectedNode" (click)="back()" class="button">Back</button>
     <button (click)="addNode()" class="button">Add node</button>
+    <select [formControl]="filter">
+      <option value="null" selected>All</option>
+      <option value="true">Approved</option>
+      <option value="false">Not approved</option>
+    </select>
     <button (click)="saveGraph()" class="button">Save changes</button>
   </div>
 </nav>

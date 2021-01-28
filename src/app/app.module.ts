@@ -10,6 +10,7 @@ import { InfoDialogComponent } from './modules/info-dialog/info-dialog.component
 import { DemoMaterialModule } from './material.module';
 import {AddNodeDialogComponent} from './modules/add-node-dialog/add-node-dialog.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { NgxDatetimeRangePickerModule } from 'ngx-datetime-range-picker';
 
 @NgModule({
   declarations: [
@@ -25,6 +26,7 @@ import { ReactiveFormsModule } from '@angular/forms';
     HttpClientModule,
     DemoMaterialModule,
     ReactiveFormsModule,
+    NgxDatetimeRangePickerModule.forRoot(),
   ],
   providers: [],
   bootstrap: [AppComponent]

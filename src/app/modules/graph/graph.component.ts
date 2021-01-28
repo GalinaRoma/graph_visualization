@@ -35,6 +35,38 @@ export class GraphComponent implements OnInit {
   // @ts-ignore
   public selectedNode: GraphNode;
 
+  // datePickerSettings = {
+  //   "retailCalendar": false,
+  //   "timezoneSupport": false,
+  //   "type": "daily",
+  //   "viewDateFormat": "MMM D, YYYY",
+  //   "placeholder": "Date Range",
+  //   "inputDateFormat": "YYYY-MM-DD"
+  // };
+  //
+  // selectedDate = {
+  //   daily: {
+  //     startDate: "2018-10-13",
+  //     endDate: "2018-10-19",
+  //   },
+  //   weekly: {
+  //     startDate: "2018-10-13",
+  //     endDate: "2018-10-19",
+  //   },
+  //   monthly: {
+  //     startDate: "2018-10-13",
+  //     endDate: "2018-10-19",
+  //   },
+  //   quarterly: {
+  //     startDate: "2018-10-13",
+  //     endDate: "2018-10-19",
+  //   },
+  //   yearly: {
+  //     startDate: "2018-10-13",
+  //     endDate: "2018-10-19",
+  //   }
+  // };
+
   private options = {
     physics: {
       enabled: false
@@ -57,6 +89,8 @@ export class GraphComponent implements OnInit {
 
   public filter = new FormControl(null);
 
+  public dateRange = { from: '10/10/20 13:55:26', to: '12/10/20 13:55:26' };
+
   /**
    * @inheritDoc
    */
@@ -64,13 +98,13 @@ export class GraphComponent implements OnInit {
     this.container = document.getElementById('graph-container');
     this.drawGraph();
     setInterval(() => {
-      this.dataStorageService.getFlatGraph(this.filter.value)
+      this.dataStorageService.getFlatGraph(this.filter.value, this.dateRange.from, this.dateRange.to)
         .subscribe(graphData => {
           if (this.displayMode === 'sfdp') {
             this.graph2D?.setData(graphData);
           }
         });
-      this.dataStorageService.getMultiLevelGraph(this.filter.value)
+      this.dataStorageService.getMultiLevelGraph(this.filter.value, this.dateRange.from, this.dateRange.to)
         .subscribe(graphData => {
           if (this.displayMode === 'multilevel') {
             let newGraphData = graphData;
@@ -84,8 +118,12 @@ export class GraphComponent implements OnInit {
     }, 3000);
   }
 
+  onFilterChange(event: any) {
+    console.log(event);
+  }
+
   public back(): void {
-    this.dataStorageService.getMultiLevelGraph(this.filter.value)
+    this.dataStorageService.getMultiLevelGraph(this.filter.value, this.dateRange.from, this.dateRange.to)
       .subscribe(graphData => {
         if (this.displayMode === 'multilevel') {
           this.graph2D?.setData(graphData);
@@ -203,7 +241,7 @@ export class GraphComponent implements OnInit {
   }
 
   public drawGraph(): void {
-    this.dataStorageService.getFlatGraph(this.filter.value)
+    this.dataStorageService.getFlatGraph(this.filter.value, this.dateRange.from, this.dateRange.to)
       .subscribe(graphData => {
         this.graphData = graphData;
 
@@ -241,7 +279,7 @@ export class GraphComponent implements OnInit {
   }
 
   public drawLevelGraph(): void {
-    this.dataStorageService.getMultiLevelGraph(this.filter.value)
+    this.dataStorageService.getMultiLevelGraph(this.filter.value, this.dateRange.from, this.dateRange.to)
       .subscribe(graphData => {
         this.allMultiLevelGraph = graphData;
         const options = {
