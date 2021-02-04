@@ -5,14 +5,17 @@
     <option value="circo">Circo layout</option>
     <option value="3d">3D</option>
   </select>
-<!--  <ngx-datetime-range-picker-->
-<!--    name="date"-->
-<!--    [options]="{}"-->
-<!--    [settings]="datePickerSettings"-->
-<!--    [(dateRangeModel)]="selectedDate"-->
-<!--    (dateRangeChanged)="onFilterChange($event)"-->
-<!--  >-->
-<!--  </ngx-datetime-range-picker>-->
+  <mat-form-field appearance="fill">
+    <input matInput [matDatepicker]="picker" [formControl]="dateFilter">
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+<!--  <mat-slider-->
+<!--    thumbLabel-->
+<!--    [displayWith]="formatLabel.bind(this)"-->
+<!--    tickInterval="1000"-->
+<!--    [min]="date.from"-->
+<!--    [max]="date.to"></mat-slider>-->
   <div *ngIf="displayMode === 'sfdp' || displayMode === 'multilevel'">
     <button *ngIf="displayMode === 'multilevel' && selectedNode" (click)="back()" class="button">Back</button>
     <button (click)="addNode()" class="button">Add node</button>

@@ -20,6 +20,7 @@ export interface NodeInitData {
    * Node name.
    */
   name?: string | null;
+  created_at: string;
   /**
    * Node type.
    */
@@ -88,6 +89,9 @@ export class GraphNode {
    */
   public type: string | null;
 
+  // tslint:disable-next-line:variable-name
+  public created_at: string;
+
   public children: GraphNode[] | null;
   public networks: {ip: string, mask: string}[] | null;
   public interfaces: {ip: string, mask: string}[] | null;
@@ -101,6 +105,7 @@ export class GraphNode {
     this.children = data.children || null;
     this.networks = data.networks || null;
     this.interfaces = data.interfaces || null;
+    this.created_at = data.created_at;
     this.x = data.x || 0;
     this.y = data.y || 0;
     this.image =

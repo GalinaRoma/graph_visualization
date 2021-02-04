@@ -20,8 +20,8 @@ import { Graph3DEdge } from '../models/edge-3d';
 export class DataStorageService {
   constructor(private http: HttpClient) {}
 
-  public getFlatGraph(filter: boolean | null, dateFrom: string, dateTo: string): Observable<GraphData> {
-    return this.http.get(`http://127.0.0.1:5000/flat-graph?filter=${filter}&date_from=${dateFrom}&date_to=${dateTo}`)
+  public getFlatGraph(filter: boolean | null, dateFrom: string|undefined): Observable<GraphData> {
+    return this.http.get(`http://127.0.0.1:5000/flat-graph?filter=${filter}&date_from=${dateFrom ?? null}`)
       .pipe(map(json => {
         const nodes = [];
         const edges = [];
@@ -42,8 +42,8 @@ export class DataStorageService {
       }));
   }
 
-  public getCircoGraph(): Observable<GraphData> {
-    return this.http.get('http://127.0.0.1:5000/circo-graph')
+  public getCircoGraph(filter: boolean | null, dateFrom: string|undefined): Observable<GraphData> {
+    return this.http.get(`http://127.0.0.1:5000/circo-graph?filter=${filter ?? null}&date_from=${dateFrom ?? null}`)
       .pipe(map(json => {
         const nodes = [];
         const edges = [];
@@ -64,8 +64,8 @@ export class DataStorageService {
       }));
   }
 
-  public getMultiLevelGraph(filter: boolean | null, dateFrom: string, dateTo: string): Observable<GraphData> {
-    return this.http.get(`http://127.0.0.1:5000/multilevel-graph?filter=${filter}&date_from=${dateFrom}&date_to=${dateTo}`)
+  public getMultiLevelGraph(filter: boolean | null, dateFrom: string|undefined): Observable<GraphData> {
+    return this.http.get(`http://127.0.0.1:5000/multilevel-graph?filter=${filter}&date_from=${dateFrom ?? null}`)
       .pipe(map(json => {
         const nodes = [];
         const edges = [];

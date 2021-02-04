@@ -34,6 +34,7 @@ export class AddNodeDialogComponent {
           ip: this.ip.value,
           mask: this.mask.value,
         }],
+        created_at: new Date().toISOString(),
       }),
     });
   }
