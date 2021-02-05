@@ -65,6 +65,13 @@ export class GraphComponent implements OnInit {
     this.container = document.getElementById('graph-container');
     this.drawGraph();
     setInterval(() => {
+      this.dataStorageService.getCircoGraph(this.filter.value,
+        (this.dateFilter.value as Date)?.toISOString())
+        .subscribe(graphData => {
+          if (this.displayMode === 'circo') {
+            this.graph2D?.setData(graphData);
+          }
+        });
       this.dataStorageService.getFlatGraph(this.filter.value,
         (this.dateFilter.value as Date)?.toISOString())
         .subscribe(graphData => {
@@ -133,25 +140,12 @@ export class GraphComponent implements OnInit {
 
   public draw3DGraph(): void {
     this.dataStorageService.get3DGraph().subscribe(graphData => {
-      graphData.links.forEach(link => {
-        const source = graphData.nodes.find(node => node.id === link.source) as Graph3DNode;
-        const target = graphData.nodes.find(node => node.id === link.target) as Graph3DNode;
-        !source.neighbors && (source.neighbors = []);
-        !target.neighbors && (target.neighbors = []);
-        source.neighbors.push(target);
-        target.neighbors.push(source);
-
-        !source.links && (source.links = []);
-        !target.links && (target.links = []);
-        source.links.push(link);
-        target.links.push(link);
-      });
-
       const highlightNodes = new Set();
       const highlightLinks = new Set();
       let hoverNode: Graph3DNode | null = null;
 
       this.graph3d = ForceGraph3D();
+
 
       this.graph3d(this.container as HTMLElement)
         .graphData(graphData)
@@ -165,8 +159,9 @@ export class GraphComponent implements OnInit {
 
           return new THREE.Line(geometry, material);
         })
-        .nodeThreeObject(() => {
-          const imgTexture = new THREE.TextureLoader().load(this.imageUrl);
+        .nodeThreeObject((node) => {
+          // @ts-ignore
+          const imgTexture = new THREE.TextureLoader().load(node.image);
           const material = new THREE.SpriteMaterial({ map: imgTexture });
           const sprite = new THREE.Sprite(material);
           sprite.scale.set(10, 10, 10);
@@ -333,7 +328,7 @@ export class GraphComponent implements OnInit {
         }
       });
 
-      this.dataStorageService.saveGraph(this.graphData.nodes)
+      this.dataStorageService.saveGraph(this.graphData.nodes, this.displayMode)
         .subscribe();
     } else {
       // @ts-ignore

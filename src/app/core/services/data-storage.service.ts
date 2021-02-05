@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import {Observable, of} from 'rxjs';
 
 import { Node3DDto } from './dto/node-dto';
 import { Graph3DNode, GraphNode } from '../models/node';
@@ -42,7 +42,7 @@ export class DataStorageService {
       }));
   }
 
-  public getCircoGraph(filter: boolean | null, dateFrom: string|undefined): Observable<GraphData> {
+  public getCircoGraph(filter?: boolean | null, dateFrom?: string|undefined): Observable<GraphData> {
     return this.http.get(`http://127.0.0.1:5000/circo-graph?filter=${filter ?? null}&date_from=${dateFrom ?? null}`)
       .pipe(map(json => {
         const nodes = [];
@@ -86,8 +86,8 @@ export class DataStorageService {
       }));
   }
 
-  public get3DGraph(): Observable<Graph3dData> {
-    return this.http.get('http://127.0.0.1:5000/flat-graph')
+  public get3DGraph(filter?: boolean | null, dateFrom?: string|undefined): Observable<Graph3dData> {
+    return this.http.get(`http://127.0.0.1:5000/flat-graph?filter=${filter ?? null}&date_from=${dateFrom ?? null}`)
       .pipe(map(json => {
         const nodes = [];
         const links = [];
@@ -108,8 +108,14 @@ export class DataStorageService {
       }));
   }
 
-  public saveGraph(nodes: GraphNode[]): Observable<any> {
-    return this.http.post('http://127.0.0.1:5000/flat-graph', nodes);
+  public saveGraph(nodes: GraphNode[], layoutName: string): Observable<any> {
+    if (layoutName === 'sfdp') {
+      return this.http.post('http://127.0.0.1:5000/flat-graph', nodes);
+    }
+    if (layoutName === 'circo') {
+      return this.http.post('http://127.0.0.1:5000/circo-graph', nodes);
+    }
+    return of();
   }
 
 
