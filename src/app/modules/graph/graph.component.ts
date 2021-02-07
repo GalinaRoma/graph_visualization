@@ -13,6 +13,7 @@ import * as THREE from 'three';
 import {AddNodeDialogComponent} from '../add-node-dialog/add-node-dialog.component';
 import {FormControl} from '@angular/forms';
 import {InfoEdgeDialogComponent} from '../info-edge-dialog/info-edge-dialog.component';
+import {MatSelectChange} from '@angular/material/select';
 
 @Component({
   selector: 'app-graph2d',
@@ -35,6 +36,8 @@ export class GraphComponent implements OnInit {
 
   // @ts-ignore
   public selectedNode: GraphNode;
+
+  public editingMode = false;
 
   private options = {
     physics: {
@@ -66,31 +69,39 @@ export class GraphComponent implements OnInit {
     this.container = document.getElementById('graph-container');
     this.drawGraph();
     setInterval(() => {
-      this.dataStorageService.getCircoGraph(this.filter.value,
-        (this.dateFilter.value as Date)?.toISOString())
-        .subscribe(graphData => {
-          if (this.displayMode === 'circo') {
-            this.graph2D?.setData(graphData);
-          }
-        });
-      this.dataStorageService.getFlatGraph(this.filter.value,
-        (this.dateFilter.value as Date)?.toISOString())
-        .subscribe(graphData => {
-          if (this.displayMode === 'sfdp') {
-            this.graph2D?.setData(graphData);
-          }
-        });
-      this.dataStorageService.getMultiLevelGraph(this.filter.value, (this.dateFilter.value as Date)?.toISOString())
-        .subscribe(graphData => {
-          if (this.displayMode === 'multilevel') {
-            let newGraphData = graphData;
-            if (this.selectedNode) {
-              const elem = graphData.nodes.filter(node => node.id === this.selectedNode.id)[0];
-              newGraphData = this.createGraphForChild(elem);
-            }
-            this.graph2D?.setData(newGraphData);
-          }
-        });
+      if (!this.editingMode) {
+        if (this.displayMode === 'circo') {
+          this.dataStorageService.getCircoGraph(this.filter.value,
+            (this.dateFilter.value as Date)?.toISOString())
+            .subscribe(graphData => {
+              if (!this.editingMode) {
+                this.graph2D?.setData(graphData);
+              }
+            });
+        }
+        if (this.displayMode === 'sfdp') {
+          this.dataStorageService.getFlatGraph(this.filter.value,
+            (this.dateFilter.value as Date)?.toISOString())
+            .subscribe(graphData => {
+              if (!this.editingMode) {
+                this.graph2D?.setData(graphData);
+              }
+            });
+        }
+        if (this.displayMode === 'multilevel') {
+          this.dataStorageService.getMultiLevelGraph(this.filter.value, (this.dateFilter.value as Date)?.toISOString())
+            .subscribe(graphData => {
+              if (!this.editingMode) {
+                let newGraphData = graphData;
+                if (this.selectedNode) {
+                  const elem = graphData.nodes.filter(node => node.id === this.selectedNode.id)[0];
+                  newGraphData = this.createGraphForChild(elem);
+                }
+                this.graph2D?.setData(newGraphData);
+              }
+            });
+        }
+      }
     }, 1000);
   }
 
@@ -117,9 +128,9 @@ export class GraphComponent implements OnInit {
     });
   }
 
-  public setDisplayMode(mode: Event): void {
+  public setDisplayMode(mode: MatSelectChange): void {
     // @ts-ignore
-    this.displayMode = mode.target.value;
+    this.displayMode = mode.value;
     switch (this.displayMode) {
       case 'sfdp':
         this.drawGraph();
@@ -219,6 +230,15 @@ export class GraphComponent implements OnInit {
             await this.openEdgeInfoDialog(elem);
           }
         });
+
+        this.graph2D.on('dragStart', async (params) => {
+          this.editingMode = true;
+        });
+
+        this.graph2D.on('dragEnd', async (params) => {
+          this.saveGraph();
+          this.editingMode = false;
+        });
       });
   }
 
@@ -242,6 +262,15 @@ export class GraphComponent implements OnInit {
         };
 
         this.graph2D = new Network(this.container as HTMLElement, graphData, options);
+
+        this.graph2D.on('dragStart', async (params) => {
+          this.editingMode = true;
+        });
+
+        this.graph2D.on('dragEnd', async (params) => {
+          this.saveGraph();
+          this.editingMode = false;
+        });
       });
   }
 
@@ -279,6 +308,23 @@ export class GraphComponent implements OnInit {
             await this.openNodeInfoDialog(elem);
           }
         });
+
+        this.graph2D.on('selectEdge', async (params) => {
+          if (params.nodes.length === 0 && params.nodes.length !== 0) {
+            const elem = graphData.edges.filter(node => node.id === params.edges[0])[0];
+
+            await this.openEdgeInfoDialog(elem);
+          }
+        });
+
+        this.graph2D.on('dragStart', async (params) => {
+          this.editingMode = true;
+        });
+
+        this.graph2D.on('dragEnd', async (params) => {
+          this.saveGraph();
+          this.editingMode = false;
+        });
     });
   }
 
@@ -291,11 +337,11 @@ export class GraphComponent implements OnInit {
       // @ts-ignore
       for (const neighbor of node.neighbors) {
         edges.push(new GraphEdge({
-          id: `${node.id}-${neighbor}`,
+          id: `${node.id}-${neighbor.neighbor_id}`,
           from: node.id,
-          to: neighbor,
-          protocols: ['qwe'],
-          approved: true,
+          to: neighbor.neighbor_id,
+          protocols: neighbor.protocols,
+          approved: neighbor.approved,
         }));
       }
     }
@@ -351,7 +397,7 @@ export class GraphComponent implements OnInit {
 
       this.dataStorageService.saveGraph(this.graphData.nodes, this.displayMode)
         .subscribe();
-    } else {
+    } else if (this.displayMode === 'multilevel') {
       // @ts-ignore
       const { nodes } = this.graph2D.body;
 
@@ -364,21 +410,40 @@ export class GraphComponent implements OnInit {
           // @ts-ignore
           graphNode.y = a.y;
         } else {
-          // @ts-ignore
-          for (const child of graphNode.children) {
+          if (graphNode.children) {
             // @ts-ignore
-            const b = Object.values(nodes).find(node => node.id === child.id);
-            if (b) {
+            for (const child of graphNode.children) {
               // @ts-ignore
-              child.x = b.x;
-              // @ts-ignore
-              child.y = b.y;
+              const b = Object.values(nodes).find(node => node.id === child.id);
+              if (b) {
+                // @ts-ignore
+                child.x = b.x;
+                // @ts-ignore
+                child.y = b.y;
+              }
             }
           }
         }
         return graphNode;
     });
       this.dataStorageService.saveMultilevelGraph(this.allMultiLevelGraph.nodes)
+        .subscribe();
+    } else if (this.displayMode === 'circo') {
+      // @ts-ignore
+      const { nodes } = this.graph2D.body;
+
+      this.graphData.nodes.map(node => {
+        // @ts-ignore
+        const updatedNode = Object.values(nodes).find(graphNode => graphNode.id === node.id);
+        if (updatedNode) {
+          // @ts-ignore
+          node.x = updatedNode.x;
+          // @ts-ignore
+          node.y = updatedNode.y;
+        }
+      });
+
+      this.dataStorageService.saveGraph(this.graphData.nodes, this.displayMode)
         .subscribe();
     }
   }

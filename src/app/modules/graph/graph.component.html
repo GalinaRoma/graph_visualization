@@ -1,25 +1,33 @@
 <nav class="nav-panel">
-  <select name="displayMode" (change)="setDisplayMode($event)">
-    <option value="sfdp" selected>SFDP layout</option>
-    <option value="multilevel">Group by ip</option>
-    <option value="circo">Circo layout</option>
-    <option value="3d">3D</option>
-  </select>
-  <mat-form-field appearance="fill">
-    <input matInput [ngxMatDatetimePicker]="picker" placeholder="Choose a date" [formControl]="dateFilter">
-    <mat-datepicker-toggle matSuffix [for]="$any(picker)"></mat-datepicker-toggle>
-    <ngx-mat-datetime-picker #picker [showSeconds]="true">
-    </ngx-mat-datetime-picker>
+  <mat-form-field appearance="fill" class="layout">
+    <mat-label>Select layout</mat-label>
+    <mat-select name="displayMode" [value]="displayMode" (selectionChange)="setDisplayMode($event)">
+      <mat-option value="sfdp" selected>SFDP layout</mat-option>
+      <mat-option value="multilevel">Group by ip</mat-option>
+      <mat-option value="circo">Circo layout</mat-option>
+      <mat-option value="3d">3D</mat-option>
+    </mat-select>
   </mat-form-field>
-  <div *ngIf="displayMode === 'sfdp' || displayMode === 'multilevel'">
-    <button *ngIf="displayMode === 'multilevel' && selectedNode" (click)="back()" class="button">Back</button>
-    <button (click)="addNode()" class="button">Add node</button>
-    <select [formControl]="filter">
-      <option value="null" selected>All</option>
-      <option value="true">Approved</option>
-      <option value="false">Not approved</option>
-    </select>
-    <button (click)="saveGraph()" class="button">Save changes</button>
+  <div *ngIf="displayMode === 'sfdp'" class="filters-container">
+    <mat-form-field appearance="fill" class="filter">
+      <mat-label>Filter by date</mat-label>
+      <input matInput [ngxMatDatetimePicker]="picker" placeholder="Select date" [formControl]="dateFilter">
+      <mat-datepicker-toggle matSuffix [for]="$any(picker)"></mat-datepicker-toggle>
+      <ngx-mat-datetime-picker #picker [showSeconds]="true">
+      </ngx-mat-datetime-picker>
+    </mat-form-field>
+    <mat-form-field appearance="fill" class="filter">
+      <mat-label>Filter connections</mat-label>
+      <mat-select [formControl]="filter">
+        <mat-option value="null">All</mat-option>
+        <mat-option value="true">Approved</mat-option>
+        <mat-option value="false">Not approved</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="buttons-container" *ngIf="displayMode === 'sfdp' || displayMode === 'multilevel'">
+    <button class="button" mat-raised-button *ngIf="displayMode === 'multilevel' && selectedNode" (click)="back()">Back</button>
+    <button class="button" mat-raised-button (click)="addNode()">Add new node</button>
   </div>
 </nav>
 <div id="graph-container"></div>

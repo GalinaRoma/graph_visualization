@@ -10,6 +10,7 @@ import { GraphEdge } from '../models/edge';
 import { GraphData } from '../models/graph-data';
 import { Graph3dData } from '../models/graph-3d-data';
 import { Graph3DEdge } from '../models/edge-3d';
+import {boolean} from 'random';
 
 /**
  * Service for working with data.
@@ -31,11 +32,11 @@ export class DataStorageService {
           nodes.push(new GraphNode(node));
           for (const neighbor of node.neighbors) {
             edges.push(new GraphEdge({
-              id: `${node.id}-${neighbor}`,
+              id: `${node.id}-${neighbor.neighbor_id}`,
               from: node.id,
-              to: neighbor,
-              protocols: ['qwe'],
-              approved: true,
+              to: neighbor.neighbor_id,
+              protocols: neighbor.protocols,
+              approved: neighbor.approved,
             }));
           }
         }
@@ -55,11 +56,11 @@ export class DataStorageService {
           nodes.push(new GraphNode(node));
           for (const neighbor of node.neighbors) {
             edges.push(new GraphEdge({
-              id: `${node.id}-${neighbor}`,
+              id: `${node.id}-${neighbor.neighbor_id}`,
               from: node.id,
-              to: neighbor,
-              protocols: ['qwe'],
-              approved: true,
+              to: neighbor.neighbor_id,
+              protocols: neighbor.protocols,
+              approved: neighbor.approved,
             }));
           }
         }
@@ -79,11 +80,11 @@ export class DataStorageService {
           nodes.push(new GraphNode(node));
           for (const neighbor of node.neighbors) {
             edges.push(new GraphEdge({
-              id: `${node.id}-${neighbor}`,
+              id: `${node.id}-${neighbor.neighbor_id}`,
               from: node.id,
-              to: neighbor,
-              protocols: ['qwe'],
-              approved: true,
+              to: neighbor.neighbor_id,
+              protocols: neighbor.protocols,
+              approved: neighbor.approved,
             }));
           }
         }
@@ -103,9 +104,9 @@ export class DataStorageService {
           nodes.push(new Graph3DNode(node));
           for (const neighbor of node.neighbors) {
             links.push(new Graph3DEdge({
-              id: `${node.id}-${neighbor}`,
+              id: `${node.id}-${neighbor.neighbor_id}`,
               source: node.id,
-              target: neighbor,
+              target: neighbor.neighbor_id,
             }));
           }
         }

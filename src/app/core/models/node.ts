@@ -64,6 +64,24 @@ export interface Node3DInitData extends NodeInitData {
   collapsed?: boolean;
 }
 
+export interface NeighborConnectionInitData {
+  neighborId: string;
+  approved: boolean;
+  protocols: string[];
+}
+
+export class NeighborConnection {
+  public neighborId: string;
+  public approved: boolean;
+  public protocols: string[];
+
+  constructor(data: NeighborConnectionInitData) {
+    this.neighborId = data.neighborId;
+    this.approved = data.approved;
+    this.protocols = data.protocols;
+  }
+}
+
 /**
  * Node class.
  */
