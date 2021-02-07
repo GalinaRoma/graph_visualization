@@ -12,6 +12,7 @@ import ForceGraph3D, {ForceGraph3DInstance} from '3d-force-graph';
 import * as THREE from 'three';
 import {AddNodeDialogComponent} from '../add-node-dialog/add-node-dialog.component';
 import {FormControl} from '@angular/forms';
+import {InfoEdgeDialogComponent} from '../info-edge-dialog/info-edge-dialog.component';
 
 @Component({
   selector: 'app-graph2d',
@@ -116,9 +117,6 @@ export class GraphComponent implements OnInit {
     });
   }
 
-  /**
-   * qwe
-   */
   public setDisplayMode(mode: Event): void {
     // @ts-ignore
     this.displayMode = mode.target.value;
@@ -207,9 +205,19 @@ export class GraphComponent implements OnInit {
         this.graph2D = new Network(this.container as HTMLElement, graphData, this.options);
 
         this.graph2D.on('selectNode', async (params) => {
-          const elem = graphData.nodes.filter(node => node.id === params.nodes[0])[0];
+          if (params.nodes.length !== 0) {
+            const elem = graphData.nodes.filter(node => node.id === params.nodes[0])[0];
 
-          await this.openDialog(elem);
+            await this.openNodeInfoDialog(elem);
+          }
+        });
+
+        this.graph2D.on('selectEdge', async (params) => {
+          if (params.nodes.length === 0) {
+            const elem = graphData.edges.filter(node => node.id === params.edges[0])[0];
+
+            await this.openEdgeInfoDialog(elem);
+          }
         });
       });
   }
@@ -268,7 +276,7 @@ export class GraphComponent implements OnInit {
 
             this.graph2D?.setData(newGraphData);
           } else {
-            await this.openDialog(elem);
+            await this.openNodeInfoDialog(elem);
           }
         });
     });
@@ -286,6 +294,8 @@ export class GraphComponent implements OnInit {
           id: `${node.id}-${neighbor}`,
           from: node.id,
           to: neighbor,
+          protocols: ['qwe'],
+          approved: true,
         }));
       }
     }
@@ -294,10 +304,21 @@ export class GraphComponent implements OnInit {
   }
 
 
-  openDialog(node: GraphNode): void {
+  openNodeInfoDialog(node: GraphNode): void {
     const dialog = this.dialog.open(InfoDialogComponent, {
       width: '300px',
       data: node,
+    });
+
+    dialog.afterClosed().subscribe(result => {
+      console.log(`Dialog result: ${result}`);
+    });
+  }
+
+  openEdgeInfoDialog(edge: GraphEdge): void {
+    const dialog = this.dialog.open(InfoEdgeDialogComponent, {
+      width: '300px',
+      data: edge,
     });
 
     dialog.afterClosed().subscribe(result => {

@@ -1,0 +1,10 @@
+<h1>Connection information</h1>
+<div>
+  <p>From {{ data.from }}</p>
+  <p>To {{ data.to }}</p>
+  <p>Is approved {{ data.approved ? 'Yes' : 'No' }}</p>
+  <p>Protocols {{ data.protocols.join(',') }}</p>
+</div>
+<div>
+  <button (click)="onNoClick()">Ok</button>
+</div>

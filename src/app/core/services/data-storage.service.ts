@@ -34,6 +34,8 @@ export class DataStorageService {
               id: `${node.id}-${neighbor}`,
               from: node.id,
               to: neighbor,
+              protocols: ['qwe'],
+              approved: true,
             }));
           }
         }
@@ -56,6 +58,8 @@ export class DataStorageService {
               id: `${node.id}-${neighbor}`,
               from: node.id,
               to: neighbor,
+              protocols: ['qwe'],
+              approved: true,
             }));
           }
         }
@@ -78,6 +82,8 @@ export class DataStorageService {
               id: `${node.id}-${neighbor}`,
               from: node.id,
               to: neighbor,
+              protocols: ['qwe'],
+              approved: true,
             }));
           }
         }

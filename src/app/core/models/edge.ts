@@ -14,6 +14,8 @@ export interface EdgeInitData {
    * Target node id.
    */
   to: string;
+  protocols: string[];
+  approved: boolean;
 }
 
 /**
@@ -32,10 +34,16 @@ export class GraphEdge {
    * Target node id.
    */
   to: string;
+  protocols: string[];
+  approved: boolean;
+  color: string;
 
   public constructor(data: EdgeInitData) {
     this.id = data.id;
     this.from = data.from;
     this.to = data.to;
+    this.protocols = data.protocols;
+    this.approved = data.approved;
+    this.color = this.approved ? 'green' : 'red';
   }
 }
