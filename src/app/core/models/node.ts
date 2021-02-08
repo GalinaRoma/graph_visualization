@@ -133,7 +133,9 @@ export class GraphNode {
           '../assets/switch.svg' :
           data.type === 'network' ?
             '../assets/molecular.svg' :
-            '../assets/pc.svg';
+            data.type === 'plc' ?
+              '../assets/plc.svg' :
+              '../assets/pc.svg';
   }
 }
 
