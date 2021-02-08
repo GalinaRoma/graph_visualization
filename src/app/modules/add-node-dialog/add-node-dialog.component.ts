@@ -6,6 +6,7 @@ import {FormControl, FormGroup, Validators} from '@angular/forms';
 @Component({
   selector: 'app-add-node-dialog',
   templateUrl: 'add-node-dialog.component.html',
+  styleUrls: ['./add-node-dialog.component.css']
 })
 export class AddNodeDialogComponent {
   name = new FormControl('');

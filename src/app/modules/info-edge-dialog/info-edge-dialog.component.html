@@ -1,10 +1,22 @@
-<h1>Connection information</h1>
+<h1>Connection</h1>
 <div>
-  <p>From {{ data.from }}</p>
-  <p>To {{ data.to }}</p>
-  <p>Is approved {{ data.approved ? 'Yes' : 'No' }}</p>
-  <p>Protocols {{ data.protocols.join(',') }}</p>
+  <p class="row">
+    <label>From</label>
+    <span>{{ data.from }}</span>
+  </p>
+  <p class="row">
+    <label>To</label>
+    <span>{{ data.to }}</span>
+  </p>
+  <p class="row">
+    <label>Is approved</label>
+    <span>{{ data.approved ? 'Yes' : 'No' }}</span>
+  </p>
+  <p class="row">
+    <label>Protocols</label>
+    <span>{{ data.protocols.join(',') }}</span>
+  </p>
 </div>
 <div>
-  <button (click)="onNoClick()">Ok</button>
+  <button class="ok-button" mat-raised-button (click)="onNoClick()">Ok</button>
 </div>

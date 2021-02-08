@@ -1,34 +1,34 @@
-<h1>Add device</h1>
-<div>
-  <div class="column">
-    <div class="row">
-      <label>Name
-        <input [formControl]="name"/>
-      </label>
-    </div>
-    <div class="row">
-      <label>Type
-        <select [formControl]="type">
-          <option value="host" selected>Host</option>
-          <option value="router">Router</option>
-          <option value="switch">Switch</option>
-          <option value="network">Network</option>
-        </select>
-      </label>
-    </div>
-    <div class="row">
-      <label>IP
-        <input [formControl]="ip"/>
-      </label>
-    </div>
-    <div class="row">
-      <label>Mask
-        <input [formControl]="mask"/>
-      </label>
-    </div>
-  </div>
-  <div>
-    <button (click)="saveData()">Save</button>
-    <button (click)="onCancel()">Cancel</button>
-  </div>
+<h1>New Device</h1>
+<div class="row">
+  <label>Name</label>
+  <mat-form-field>
+    <input matInput [formControl]="name"/>
+  </mat-form-field>
+</div>
+<div class="row">
+  <label>Type</label>
+  <mat-form-field class="row">
+    <mat-select [formControl]="type">
+      <mat-option value="host">Host</mat-option>
+      <mat-option value="router">Router</mat-option>
+      <mat-option value="switch">Switch</mat-option>
+      <mat-option value="network">Network</mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>
+<div class="row">
+  <label>IP</label>
+  <mat-form-field>
+    <input matInput [formControl]="ip"/>
+  </mat-form-field>
+</div>
+<div class="row">
+  <label>Mask</label>
+  <mat-form-field>
+    <input matInput [formControl]="mask"/>
+  </mat-form-field>
+</div>
+<div class="row">
+  <button class="ok-button button" mat-raised-button (click)="saveData()">Add</button>
+  <button class="ok-button button" mat-raised-button (click)="onCancel()">Cancel</button>
 </div>

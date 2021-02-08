@@ -6,6 +6,7 @@ import {GraphEdge} from '../../core/models/edge';
 @Component({
   selector: 'app-info-edge-dialog',
   templateUrl: 'info-edge-dialog.component.html',
+  styleUrls: ['./info-edge-dialog.component.css']
 })
 export class InfoEdgeDialogComponent {
 

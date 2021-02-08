@@ -119,6 +119,8 @@ export class GraphComponent implements OnInit {
   public addNode(): void {
     const dialog = this.dialog.open(AddNodeDialogComponent, {
       width: '300px',
+      panelClass: 'info-dialog',
+      hasBackdrop: false,
     });
 
     dialog.afterClosed().subscribe(result => {
@@ -158,6 +160,8 @@ export class GraphComponent implements OnInit {
 
       this.graph3d(this.container as HTMLElement)
         .graphData(graphData)
+        .width(785)
+        .height(369)
         .backgroundColor('#ffffff')
         .linkThreeObject(link => {
           const material = new THREE.LineBasicMaterial({
@@ -352,8 +356,10 @@ export class GraphComponent implements OnInit {
 
   openNodeInfoDialog(node: GraphNode): void {
     const dialog = this.dialog.open(InfoDialogComponent, {
-      width: '300px',
       data: node,
+      width: '300px',
+      panelClass: 'info-dialog',
+      hasBackdrop: false,
     });
 
     dialog.afterClosed().subscribe(result => {
@@ -365,6 +371,8 @@ export class GraphComponent implements OnInit {
     const dialog = this.dialog.open(InfoEdgeDialogComponent, {
       width: '300px',
       data: edge,
+      panelClass: 'info-dialog',
+      hasBackdrop: false,
     });
 
     dialog.afterClosed().subscribe(result => {
