@@ -2,13 +2,13 @@
   <mat-form-field appearance="fill" class="layout">
     <mat-label>Select layout</mat-label>
     <mat-select name="displayMode" [value]="displayMode" (selectionChange)="setDisplayMode($event)">
-      <mat-option value="sfdp" selected>SFDP layout</mat-option>
+      <mat-option value="sfdp">SFDP layout</mat-option>
       <mat-option value="multilevel">Group by ip</mat-option>
       <mat-option value="circo">Circo layout</mat-option>
       <mat-option value="3d">3D</mat-option>
     </mat-select>
   </mat-form-field>
-  <div *ngIf="displayMode === 'sfdp'" class="filters-container">
+  <div *ngIf="displayMode === 'sfdp' || displayMode === 'multilevel'" class="filters-container">
     <mat-form-field appearance="fill" class="filter">
       <mat-label>Filter by date</mat-label>
       <input matInput [ngxMatDatetimePicker]="picker" placeholder="Select date" [formControl]="dateFilter">

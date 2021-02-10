@@ -21,46 +21,46 @@ import {MatSelectChange} from '@angular/material/select';
   styleUrls: ['./graph.component.css']
 })
 export class GraphComponent implements OnInit {
-  private container: HTMLElement | null = null;
-  private orangeColor = '#FF8C00';
-  private blackColor = '#404040';
-  private imageUrl = '../assets/pc.svg';
-  private graph2D: Network | undefined;
-  private graph3d: ForceGraph3DInstance | undefined;
-
-  public displayMode = 'sfdp';
-  // @ts-ignore
-  private graphData: GraphData;
-  // @ts-ignore
-  private allMultiLevelGraph: GraphData;
-
-  // @ts-ignore
-  public selectedNode: GraphNode;
-
-  public editingMode = false;
-
   private options = {
     physics: {
       enabled: false
     },
     nodes: {
       shape: 'image',
-      image: this.imageUrl,
-    },
-    edges: {
-      color: {
-        color: this.blackColor,
-        highlight: this.orangeColor,
-      },
     },
     interaction: { keyboard: true },
   };
 
-  constructor(private dataStorageService: DataStorageService,
-              public dialog: MatDialog) {}
+  private orangeColor = '#FF8C00';
+  private blackColor = '#404040';
 
+  private container: HTMLElement | null = null;
+  private graph2D: Network | undefined;
+  private graph3d: ForceGraph3DInstance | undefined;
+  // @ts-ignore
+  private graphData: GraphData;
+  // @ts-ignore
+  private allMultiLevelGraph: GraphData;
+  // @ts-ignore
+  public selectedNode: GraphNode;
+  private editingMode = false;
+  /**
+   * Display mode of view.
+   */
+  public displayMode = 'sfdp';
+  /**
+   * Approve filter control.
+   */
   public filter = new FormControl(null);
+  /**
+   * Date filter control.
+   */
   public dateFilter = new FormControl(null);
+
+  constructor(
+    private dataStorageService: DataStorageService,
+    public dialog: MatDialog,
+  ) {}
 
   /**
    * @inheritDoc
@@ -70,36 +70,38 @@ export class GraphComponent implements OnInit {
     this.drawGraph();
     setInterval(() => {
       if (!this.editingMode) {
-        if (this.displayMode === 'circo') {
-          this.dataStorageService.getCircoGraph(this.filter.value,
-            (this.dateFilter.value as Date)?.toISOString())
-            .subscribe(graphData => {
-              if (!this.editingMode) {
-                this.graph2D?.setData(graphData);
-              }
-            });
-        }
-        if (this.displayMode === 'sfdp') {
-          this.dataStorageService.getFlatGraph(this.filter.value,
-            (this.dateFilter.value as Date)?.toISOString())
-            .subscribe(graphData => {
-              if (!this.editingMode) {
-                this.graph2D?.setData(graphData);
-              }
-            });
-        }
-        if (this.displayMode === 'multilevel') {
-          this.dataStorageService.getMultiLevelGraph(this.filter.value, (this.dateFilter.value as Date)?.toISOString())
-            .subscribe(graphData => {
-              if (!this.editingMode) {
-                let newGraphData = graphData;
-                if (this.selectedNode) {
-                  const elem = graphData.nodes.filter(node => node.id === this.selectedNode.id)[0];
-                  newGraphData = this.createGraphForChild(elem);
+        const approved = this.filter.value;
+        const filterDate = (this.dateFilter.value as Date)?.toISOString();
+        switch (this.displayMode) {
+          case 'sfdp':
+            this.dataStorageService.getFlatGraph(approved, filterDate)
+              .subscribe(graphData => {
+                if (!this.editingMode) {
+                  this.graph2D?.setData(graphData);
                 }
-                this.graph2D?.setData(newGraphData);
-              }
-            });
+              });
+            break;
+          case 'multilevel':
+            this.dataStorageService.getMultiLevelGraph(approved, filterDate)
+              .subscribe(graphData => {
+                if (!this.editingMode) {
+                  let newGraphData = graphData;
+                  if (this.selectedNode) {
+                    const elem = graphData.nodes.filter(node => node.id === this.selectedNode.id)[0];
+                    newGraphData = this.createGraphForChild(elem);
+                  }
+                  this.graph2D?.setData(newGraphData);
+                }
+              });
+            break;
+          case 'circo':
+            this.dataStorageService.getCircoGraph(approved, filterDate)
+              .subscribe(graphData => {
+                if (!this.editingMode) {
+                  this.graph2D?.setData(graphData);
+                }
+              });
+            break;
         }
       }
     }, 1000);
@@ -212,11 +214,15 @@ export class GraphComponent implements OnInit {
     graph.linkThreeObject(graph.linkThreeObject());
   }
 
+  /**
+   * Set data to graph container.
+   */
   public drawGraph(): void {
-    this.dataStorageService.getFlatGraph(this.filter.value, (this.dateFilter.value as Date)?.toISOString())
+    const approved = this.filter.value;
+    const dateFilter = (this.dateFilter.value as Date)?.toISOString();
+    this.dataStorageService.getFlatGraph(approved, dateFilter)
       .subscribe(graphData => {
         this.graphData = graphData;
-
         this.graph2D = new Network(this.container as HTMLElement, graphData, this.options);
 
         this.graph2D.on('selectNode', async (params) => {
@@ -235,11 +241,11 @@ export class GraphComponent implements OnInit {
           }
         });
 
-        this.graph2D.on('dragStart', async (params) => {
+        this.graph2D.on('dragStart', async () => {
           this.editingMode = true;
         });
 
-        this.graph2D.on('dragEnd', async (params) => {
+        this.graph2D.on('dragEnd', async () => {
           this.saveGraph();
           this.editingMode = false;
         });
@@ -249,23 +255,8 @@ export class GraphComponent implements OnInit {
   public drawCircoGraph(): void {
     this.dataStorageService.getCircoGraph()
       .subscribe(graphData => {
-        const options = {
-          physics: {
-            enabled: false
-          },
-          nodes: {
-            shape: 'image',
-            image: this.imageUrl,
-          },
-          edges: {
-            color: {
-              color: this.blackColor,
-              highlight: this.orangeColor,
-            },
-          }
-        };
 
-        this.graph2D = new Network(this.container as HTMLElement, graphData, options);
+        this.graph2D = new Network(this.container as HTMLElement, graphData, this.options);
 
         this.graph2D.on('dragStart', async (params) => {
           this.editingMode = true;
@@ -282,23 +273,8 @@ export class GraphComponent implements OnInit {
     this.dataStorageService.getMultiLevelGraph(this.filter.value, (this.dateFilter.value as Date)?.toISOString())
       .subscribe(graphData => {
         this.allMultiLevelGraph = graphData;
-        const options = {
-          physics: {
-            enabled: false
-          },
-          nodes: {
-            shape: 'image',
-            image: this.imageUrl,
-          },
-          edges: {
-            color: {
-              color: this.blackColor,
-              highlight: this.orangeColor,
-            },
-          }
-        };
 
-        this.graph2D = new Network(this.container as HTMLElement, graphData, options);
+        this.graph2D = new Network(this.container as HTMLElement, graphData, this.options);
 
         this.graph2D.on('selectNode', async (params) => {
           const elem = graphData.nodes.filter(node => node.id === params.nodes[0])[0];
@@ -352,7 +328,6 @@ export class GraphComponent implements OnInit {
 
     return new GraphData({ nodes, edges });
   }
-
 
   openNodeInfoDialog(node: GraphNode): void {
     const dialog = this.dialog.open(InfoDialogComponent, {

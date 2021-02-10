@@ -70,7 +70,7 @@ export class DataStorageService {
   }
 
   public getMultiLevelGraph(filter: boolean | null, dateFrom: string|undefined): Observable<GraphData> {
-    return this.http.get(`http://127.0.0.1:5000/multilevel-graph?filter=${filter}&date_from=${dateFrom ?? null}`)
+    return this.http.get(`http://127.0.0.1:5000/multilevel-graph?filter=${filter ?? null}&date_from=${dateFrom ?? null}`)
       .pipe(map(json => {
         const nodes = [];
         const edges = [];
