@@ -67,6 +67,10 @@ export class GraphComponent implements OnInit {
    */
   private allMultiLevelGraph: GraphData | undefined;
   /**
+   * Current multilevel graph data (current view levels).
+   */
+  private currentMultiLevelGraph: GraphData | undefined;
+  /**
    * Selected node (for multilevel graph).
    */
   public selectedNode: GraphNode | undefined;
@@ -121,12 +125,12 @@ export class GraphComponent implements OnInit {
 
     this.graph2D?.on('selectNode', async (params) => {
       if (this.displayMode === 'multilevel') {
-        const elem = this.allMultiLevelGraph?.nodes.filter(node => node.id === params.nodes[0])[0];
+        const elem = this.currentMultiLevelGraph?.nodes.filter(node => node.id === params.nodes[0])[0];
 
         if (elem && elem.children && elem.children.length > 0) {
           this.selectedNode = elem;
           const newGraphData = this.createGraphForChild(elem);
-          this.allMultiLevelGraph = newGraphData;
+          this.currentMultiLevelGraph = newGraphData;
 
           this.graph2D?.setData(newGraphData);
         } else if (elem) {
@@ -146,7 +150,7 @@ export class GraphComponent implements OnInit {
     this.graph2D?.on('selectEdge', async (params) => {
       if (this.displayMode === 'multilevel') {
         if (params.nodes.length === 0 && params.edges.length !== 0) {
-          const elem = this.allMultiLevelGraph?.edges.filter(node => node.id === params.edges[0])[0];
+          const elem = this.currentMultiLevelGraph?.edges.filter(node => node.id === params.edges[0])[0];
           if (elem) {
             await this.openEdgeInfoDialog(elem);
           }
@@ -211,15 +215,14 @@ export class GraphComponent implements OnInit {
     this.dataStorageService.getMultiLevelGraph(this.approveFilter.value, (this.dateFilter.value as Date)?.toISOString())
       .subscribe(graphData => {
         this.allMultiLevelGraph = graphData;
-
         if (!this.editingMode) {
-          this.allMultiLevelGraph = graphData;
           let newGraphData = graphData;
           if (this.selectedNode) {
             const elem = graphData.nodes.filter(node => node.id === this.selectedNode?.id)[0];
             newGraphData = this.createGraphForChild(elem);
           }
           if (this.graph2D) {
+            this.currentMultiLevelGraph = newGraphData;
             this.graph2D?.setData(newGraphData);
           }
         }
