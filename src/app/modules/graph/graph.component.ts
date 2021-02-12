@@ -277,11 +277,13 @@ export class GraphComponent implements OnInit {
         this.graph2D = new Network(this.container as HTMLElement, graphData, this.options);
 
         this.graph2D.on('selectNode', async (params) => {
-          const elem = graphData.nodes.filter(node => node.id === params.nodes[0])[0];
+          const elem = this.allMultiLevelGraph.nodes.filter(node => node.id === params.nodes[0])[0];
+          console.log(elem);
 
           if (elem.children && elem.children.length > 0) {
             this.selectedNode = elem;
             const newGraphData = this.createGraphForChild(elem);
+            this.allMultiLevelGraph = newGraphData;
 
             this.graph2D?.setData(newGraphData);
           } else {
@@ -290,18 +292,18 @@ export class GraphComponent implements OnInit {
         });
 
         this.graph2D.on('selectEdge', async (params) => {
-          if (params.nodes.length === 0 && params.nodes.length !== 0) {
-            const elem = graphData.edges.filter(node => node.id === params.edges[0])[0];
+          if (params.nodes.length === 0 && params.edges.length !== 0) {
+            const elem = this.allMultiLevelGraph.edges.filter(node => node.id === params.edges[0])[0];
 
             await this.openEdgeInfoDialog(elem);
           }
         });
 
-        this.graph2D.on('dragStart', async (params) => {
+        this.graph2D.on('dragStart', async () => {
           this.editingMode = true;
         });
 
-        this.graph2D.on('dragEnd', async (params) => {
+        this.graph2D.on('dragEnd', async () => {
           this.saveGraph();
           this.editingMode = false;
         });
