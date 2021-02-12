@@ -1,26 +1,34 @@
 import { Component, OnInit } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSelectChange } from '@angular/material/select';
 import { Network } from 'vis-network/peer';
-import { NodeDto } from '../../core/services/dto/node-dto';
-import {Graph3DNode, GraphNode} from '../../core/models/node';
-import { EdgeDto } from '../../core/services/dto/edge-dto';
-import { GraphEdge } from '../../core/models/edge';
-import { DataStorageService } from '../../core/services/data-storage.service';
-import {GraphData} from '../../core/models/graph-data';
-import {MatDialog} from '@angular/material/dialog';
-import {InfoDialogComponent} from '../info-dialog/info-dialog.component';
-import ForceGraph3D, {ForceGraph3DInstance} from '3d-force-graph';
+import ForceGraph3D, { ForceGraph3DInstance } from '3d-force-graph';
 import * as THREE from 'three';
-import {AddNodeDialogComponent} from '../add-node-dialog/add-node-dialog.component';
-import {FormControl} from '@angular/forms';
-import {InfoEdgeDialogComponent} from '../info-edge-dialog/info-edge-dialog.component';
-import {MatSelectChange} from '@angular/material/select';
 
+import { DataStorageService } from '../../core/services/data-storage.service';
+import { Graph3DNode } from '../../core/models/node-3d';
+import { GraphData } from '../../core/models/graph-data';
+import { GraphEdge } from '../../core/models/edge';
+import { GraphNode } from '../../core/models/node';
+import { AddNodeDialogComponent } from '../add-node-dialog/add-node-dialog.component';
+import { InfoEdgeDialogComponent } from '../info-edge-dialog/info-edge-dialog.component';
+import { InfoNodeDialogComponent } from '../info-node-dialog/info-node-dialog.component';
+
+/**
+ * Graph component.
+ */
 @Component({
-  selector: 'app-graph2d',
+  selector: 'app-graph',
   templateUrl: './graph.component.html',
   styleUrls: ['./graph.component.css']
 })
 export class GraphComponent implements OnInit {
+  /**
+   * Options for Vis.js graph
+   * To disable physics interaction.
+   * And nodes should use image for view.
+   */
   private options = {
     physics: {
       enabled: false
@@ -30,19 +38,41 @@ export class GraphComponent implements OnInit {
     },
     interaction: { keyboard: true },
   };
-
-  private orangeColor = '#FF8C00';
-  private blackColor = '#404040';
-
+  /**
+   * Options for open dialog.
+   */
+  private dialogOptions = {
+    width: '300px',
+    panelClass: 'info-dialog',
+    hasBackdrop: false,
+  };
+  /**
+   * HTML container.
+   */
   private container: HTMLElement | null = null;
+  /**
+   * Graph2d structure.
+   */
   private graph2D: Network | undefined;
+  /**
+   * Graph3d structure.
+   */
   private graph3d: ForceGraph3DInstance | undefined;
-  // @ts-ignore
-  private graphData: GraphData;
-  // @ts-ignore
-  private allMultiLevelGraph: GraphData;
-  // @ts-ignore
-  public selectedNode: GraphNode;
+  /**
+   * Current flat graph data (circo or sfdp).
+   */
+  private flatGraphData: GraphData | undefined;
+  /**
+   * Current multilevel graph data (all levels).
+   */
+  private allMultiLevelGraph: GraphData | undefined;
+  /**
+   * Selected node (for multilevel graph).
+   */
+  public selectedNode: GraphNode | undefined;
+  /**
+   * Flag for editing mode (when user change node position).
+   */
   private editingMode = false;
   /**
    * Display mode of view.
@@ -51,7 +81,7 @@ export class GraphComponent implements OnInit {
   /**
    * Approve filter control.
    */
-  public filter = new FormControl(null);
+  public approveFilter = new FormControl(null);
   /**
    * Date filter control.
    */
@@ -67,82 +97,214 @@ export class GraphComponent implements OnInit {
    */
   public ngOnInit(): void {
     this.container = document.getElementById('graph-container');
-    this.drawGraph();
+    this.initDraw();
+    // Set interval for auto update data from server.
     setInterval(() => {
       if (!this.editingMode) {
-        const approved = this.filter.value;
-        const filterDate = (this.dateFilter.value as Date)?.toISOString();
         switch (this.displayMode) {
           case 'sfdp':
-            this.dataStorageService.getFlatGraph(approved, filterDate)
-              .subscribe(graphData => {
-                if (!this.editingMode) {
-                  this.graph2D?.setData(graphData);
-                }
-              });
+            this.drawGraph();
             break;
           case 'multilevel':
-            this.dataStorageService.getMultiLevelGraph(approved, filterDate)
-              .subscribe(graphData => {
-                if (!this.editingMode) {
-                  let newGraphData = graphData;
-                  if (this.selectedNode) {
-                    const elem = graphData.nodes.filter(node => node.id === this.selectedNode.id)[0];
-                    newGraphData = this.createGraphForChild(elem);
-                  }
-                  this.graph2D?.setData(newGraphData);
-                }
-              });
+            this.drawLevelGraph();
             break;
           case 'circo':
-            this.dataStorageService.getCircoGraph(approved, filterDate)
-              .subscribe(graphData => {
-                if (!this.editingMode) {
-                  this.graph2D?.setData(graphData);
-                }
-              });
+            this.drawCircoGraph();
             break;
         }
       }
     }, 1000);
   }
 
-  public back(): void {
-    this.dataStorageService.getMultiLevelGraph(this.filter.value, (this.dateFilter.value as Date)?.toISOString())
+  private initDraw(): void {
+    this.graph2D = new Network(this.container as HTMLElement, {}, this.options);
+
+    this.graph2D?.on('selectNode', async (params) => {
+      if (this.displayMode === 'multilevel') {
+        const elem = this.allMultiLevelGraph?.nodes.filter(node => node.id === params.nodes[0])[0];
+
+        if (elem && elem.children && elem.children.length > 0) {
+          this.selectedNode = elem;
+          const newGraphData = this.createGraphForChild(elem);
+          this.allMultiLevelGraph = newGraphData;
+
+          this.graph2D?.setData(newGraphData);
+        } else if (elem) {
+          await this.openNodeInfoDialog(elem);
+        }
+      }
+      if (this.displayMode === 'sfdp') {
+        if (params.nodes.length !== 0) {
+          const elem = this.flatGraphData?.nodes.filter(node => node.id === params.nodes[0])[0];
+          if (elem) {
+            await this.openNodeInfoDialog(elem);
+          }
+        }
+      }
+    });
+
+    this.graph2D?.on('selectEdge', async (params) => {
+      if (this.displayMode === 'multilevel') {
+        if (params.nodes.length === 0 && params.edges.length !== 0) {
+          const elem = this.allMultiLevelGraph?.edges.filter(node => node.id === params.edges[0])[0];
+          if (elem) {
+            await this.openEdgeInfoDialog(elem);
+          }
+        }
+      }
+      if (this.displayMode === 'sfdp') {
+        if (params.nodes.length === 0) {
+          const elem = this.flatGraphData?.edges.filter(node => node.id === params.edges[0])[0];
+          if (elem) {
+            await this.openEdgeInfoDialog(elem);
+          }
+        }
+      }
+    });
+
+    this.graph2D?.on('dragStart', async () => {
+      this.editingMode = true;
+    });
+
+    this.graph2D?.on('dragEnd', async () => {
+      this.saveGraph();
+      this.editingMode = false;
+    });
+  }
+
+  /**
+   * Set data to flat sfdp graph container.
+   */
+  public drawGraph(): void {
+    const approved = this.approveFilter.value;
+    const dateFilter = (this.dateFilter.value as Date)?.toISOString();
+    this.dataStorageService.getFlatGraph(approved, dateFilter)
       .subscribe(graphData => {
-        if (this.displayMode === 'multilevel') {
-          this.graph2D?.setData(graphData);
-          // @ts-ignore
-          this.selectedNode = undefined;
+        if (!this.editingMode) {
+          this.flatGraphData = graphData;
+          if (this.graph2D) {
+            this.graph2D?.setData(graphData);
+          }
         }
       });
   }
 
-  public addNode(): void {
-    const dialog = this.dialog.open(AddNodeDialogComponent, {
-      width: '300px',
-      panelClass: 'info-dialog',
-      hasBackdrop: false,
-    });
+  /**
+   * Set data to flat circo graph container.
+   */
+  public drawCircoGraph(): void {
+    this.dataStorageService.getCircoGraph()
+      .subscribe(graphData => {
+        if (!this.editingMode) {
+          this.flatGraphData = graphData;
+          if (this.graph2D) {
+            this.graph2D?.setData(graphData);
+          }
+        }
+      });
+  }
 
-    dialog.afterClosed().subscribe(result => {
-      if (result) {
-        this.dataStorageService.addNode(result.result).subscribe();
-      }
+  /**
+   * Set data to multilevel graph container.
+   */
+  public drawLevelGraph(): void {
+    this.dataStorageService.getMultiLevelGraph(this.approveFilter.value, (this.dateFilter.value as Date)?.toISOString())
+      .subscribe(graphData => {
+        this.allMultiLevelGraph = graphData;
+
+        if (!this.editingMode) {
+          this.allMultiLevelGraph = graphData;
+          let newGraphData = graphData;
+          if (this.selectedNode) {
+            const elem = graphData.nodes.filter(node => node.id === this.selectedNode?.id)[0];
+            newGraphData = this.createGraphForChild(elem);
+          }
+          if (this.graph2D) {
+            this.graph2D?.setData(newGraphData);
+          }
+        }
     });
   }
 
+  /**
+   * Save updated coordinates.
+   */
+  public saveGraph(): void {
+    if (!this.graph2D) {
+      return;
+    }
+
+    if (this.displayMode === 'sfdp' || this.displayMode === 'circo') {
+      // @ts-ignore
+      const { nodes } = this.graph2D.body;
+
+      this.flatGraphData?.nodes.map(node => {
+        // @ts-ignore
+        const updatedNode = Object.values(nodes).find(graphNode => graphNode.id === node.id);
+        if (updatedNode) {
+          // @ts-ignore
+          node.x = updatedNode.x;
+          // @ts-ignore
+          node.y = updatedNode.y;
+        }
+      });
+
+      if (this.flatGraphData) {
+        this.dataStorageService.saveGraph(this.flatGraphData.nodes, this.displayMode)
+          .subscribe();
+      }
+    } else if (this.displayMode === 'multilevel') {
+      // @ts-ignore
+      const { nodes } = this.graph2D.body;
+
+      this.allMultiLevelGraph?.nodes.map(graphNode => {
+        // @ts-ignore
+        const updatedNode = Object.values(nodes).find(node => node.id === graphNode.id);
+        if (updatedNode) {
+          // @ts-ignore
+          graphNode.x = updatedNode.x;
+          // @ts-ignore
+          graphNode.y = updatedNode.y;
+        } else {
+          if (graphNode.children) {
+            for (const child of graphNode.children) {
+              // @ts-ignore
+              const updatedChildNode = Object.values(nodes).find(node => node.id === child.id);
+              if (updatedChildNode) {
+                // @ts-ignore
+                child.x = updatedChildNode.x;
+                // @ts-ignore
+                child.y = updatedChildNode.y;
+              }
+            }
+          }
+        }
+        return graphNode;
+      });
+
+      if (this.allMultiLevelGraph) {
+        this.dataStorageService.saveMultilevelGraph(this.allMultiLevelGraph.nodes)
+          .subscribe();
+      }
+    }
+  }
+
+  /**
+   * Set display mode and draw mode.
+   */
   public setDisplayMode(mode: MatSelectChange): void {
-    // @ts-ignore
     this.displayMode = mode.value;
     switch (this.displayMode) {
       case 'sfdp':
+        this.initDraw();
         this.drawGraph();
         break;
       case 'multilevel':
+        this.initDraw();
         this.drawLevelGraph();
         break;
       case 'circo':
+        this.initDraw();
         this.drawCircoGraph();
         break;
       case '3d':
@@ -151,6 +313,9 @@ export class GraphComponent implements OnInit {
     }
   }
 
+  /**
+   * Draw 3D graph.
+   */
   public draw3DGraph(): void {
     this.dataStorageService.get3DGraph().subscribe(graphData => {
       const highlightNodes = new Set();
@@ -159,7 +324,6 @@ export class GraphComponent implements OnInit {
 
       this.graph3d = ForceGraph3D();
 
-
       this.graph3d(this.container as HTMLElement)
         .graphData(graphData)
         .width(785)
@@ -167,7 +331,7 @@ export class GraphComponent implements OnInit {
         .backgroundColor('#ffffff')
         .linkThreeObject(link => {
           const material = new THREE.LineBasicMaterial({
-            color: highlightLinks.has(link) ? this.orangeColor : this.blackColor,
+            color: highlightLinks.has(link) ? '#FF8C00' : '#404040',
             linewidth: highlightLinks.has(link) ? 2 : 1,
           });
           const geometry = new THREE.BufferGeometry();
@@ -204,119 +368,65 @@ export class GraphComponent implements OnInit {
 
           hoverNode = myNode || null;
 
-          this.updateHighlight(this.graph3d as ForceGraph3DInstance);
+          // trigger update of highlighted objects in scene
+          (this.graph3d as ForceGraph3DInstance).linkThreeObject((this.graph3d as ForceGraph3DInstance).linkThreeObject());
         });
     });
-  }
-
-  private updateHighlight(graph: ForceGraph3DInstance): void {
-    // trigger update of highlighted objects in scene
-    graph.linkThreeObject(graph.linkThreeObject());
   }
 
   /**
-   * Set data to graph container.
+   * Open node info dialog.
    */
-  public drawGraph(): void {
-    const approved = this.filter.value;
-    const dateFilter = (this.dateFilter.value as Date)?.toISOString();
-    this.dataStorageService.getFlatGraph(approved, dateFilter)
-      .subscribe(graphData => {
-        this.graphData = graphData;
-        this.graph2D = new Network(this.container as HTMLElement, graphData, this.options);
+  public openNodeInfoDialog(node: GraphNode): void {
+    const dialog = this.dialog.open(InfoNodeDialogComponent, {
+      ...this.dialogOptions,
+      data: node,
+    });
 
-        this.graph2D.on('selectNode', async (params) => {
-          if (params.nodes.length !== 0) {
-            const elem = graphData.nodes.filter(node => node.id === params.nodes[0])[0];
-
-            await this.openNodeInfoDialog(elem);
-          }
-        });
-
-        this.graph2D.on('selectEdge', async (params) => {
-          if (params.nodes.length === 0) {
-            const elem = graphData.edges.filter(node => node.id === params.edges[0])[0];
-
-            await this.openEdgeInfoDialog(elem);
-          }
-        });
-
-        this.graph2D.on('dragStart', async () => {
-          this.editingMode = true;
-        });
-
-        this.graph2D.on('dragEnd', async () => {
-          this.saveGraph();
-          this.editingMode = false;
-        });
-      });
+    dialog.afterClosed().subscribe();
   }
 
-  public drawCircoGraph(): void {
-    this.dataStorageService.getCircoGraph()
-      .subscribe(graphData => {
+  /**
+   * Open edge info dialog.
+   */
+  public openEdgeInfoDialog(edge: GraphEdge): void {
+    const dialog = this.dialog.open(InfoEdgeDialogComponent, {
+      ...this.dialogOptions,
+      data: edge,
+    });
 
-        this.graph2D = new Network(this.container as HTMLElement, graphData, this.options);
-
-        this.graph2D.on('dragStart', async (params) => {
-          this.editingMode = true;
-        });
-
-        this.graph2D.on('dragEnd', async (params) => {
-          this.saveGraph();
-          this.editingMode = false;
-        });
-      });
+    dialog.afterClosed().subscribe();
   }
 
-  public drawLevelGraph(): void {
-    this.dataStorageService.getMultiLevelGraph(this.filter.value, (this.dateFilter.value as Date)?.toISOString())
-      .subscribe(graphData => {
-        this.allMultiLevelGraph = graphData;
+  /**
+   * Return to first level of multilevel graph.
+   */
+  public back(): void {
+    this.selectedNode = undefined;
+    if (this.displayMode === 'multilevel' && this.allMultiLevelGraph) {
+      this.graph2D?.setData(this.allMultiLevelGraph);
+    }
+  }
 
-        this.graph2D = new Network(this.container as HTMLElement, graphData, this.options);
+  /**
+   * Add new node to graph.
+   */
+  public addNode(): void {
+    const dialog = this.dialog.open(AddNodeDialogComponent, this.dialogOptions);
 
-        this.graph2D.on('selectNode', async (params) => {
-          const elem = this.allMultiLevelGraph.nodes.filter(node => node.id === params.nodes[0])[0];
-          console.log(elem);
-
-          if (elem.children && elem.children.length > 0) {
-            this.selectedNode = elem;
-            const newGraphData = this.createGraphForChild(elem);
-            this.allMultiLevelGraph = newGraphData;
-
-            this.graph2D?.setData(newGraphData);
-          } else {
-            await this.openNodeInfoDialog(elem);
-          }
-        });
-
-        this.graph2D.on('selectEdge', async (params) => {
-          if (params.nodes.length === 0 && params.edges.length !== 0) {
-            const elem = this.allMultiLevelGraph.edges.filter(node => node.id === params.edges[0])[0];
-
-            await this.openEdgeInfoDialog(elem);
-          }
-        });
-
-        this.graph2D.on('dragStart', async () => {
-          this.editingMode = true;
-        });
-
-        this.graph2D.on('dragEnd', async () => {
-          this.saveGraph();
-          this.editingMode = false;
-        });
+    dialog.afterClosed().subscribe(result => {
+      if (result) {
+        this.dataStorageService.addNode(result.result).subscribe();
+      }
     });
   }
 
-  public createGraphForChild(elem: GraphNode): GraphData {
+  private createGraphForChild(elem: GraphNode): GraphData {
     const nodes = [];
     const edges = [];
 
     for (const node of elem.children || []) {
       nodes.push(new GraphNode(node));
-      // @ts-ignore
       for (const neighbor of node.neighbors) {
         edges.push(new GraphEdge({
           id: `${node.id}-${neighbor.neighbor_id}`,
@@ -329,107 +439,5 @@ export class GraphComponent implements OnInit {
     }
 
     return new GraphData({ nodes, edges });
-  }
-
-  openNodeInfoDialog(node: GraphNode): void {
-    const dialog = this.dialog.open(InfoDialogComponent, {
-      data: node,
-      width: '300px',
-      panelClass: 'info-dialog',
-      hasBackdrop: false,
-    });
-
-    dialog.afterClosed().subscribe(result => {
-      console.log(`Dialog result: ${result}`);
-    });
-  }
-
-  openEdgeInfoDialog(edge: GraphEdge): void {
-    const dialog = this.dialog.open(InfoEdgeDialogComponent, {
-      width: '300px',
-      data: edge,
-      panelClass: 'info-dialog',
-      hasBackdrop: false,
-    });
-
-    dialog.afterClosed().subscribe(result => {
-      console.log(`Dialog result: ${result}`);
-    });
-  }
-
-  /**
-   * Save updated coordinates.
-   */
-  public saveGraph(): void {
-    if (!this.graph2D) {
-      return;
-    }
-
-    if (this.displayMode === 'sfdp') {
-      // @ts-ignore
-      const { nodes } = this.graph2D.body;
-
-      this.graphData.nodes.map(node => {
-        // @ts-ignore
-        const updatedNode = Object.values(nodes).find(graphNode => graphNode.id === node.id);
-        if (updatedNode) {
-          // @ts-ignore
-          node.x = updatedNode.x;
-          // @ts-ignore
-          node.y = updatedNode.y;
-        }
-      });
-
-      this.dataStorageService.saveGraph(this.graphData.nodes, this.displayMode)
-        .subscribe();
-    } else if (this.displayMode === 'multilevel') {
-      // @ts-ignore
-      const { nodes } = this.graph2D.body;
-
-      this.allMultiLevelGraph.nodes.map(graphNode => {
-        // @ts-ignore
-        const a = Object.values(nodes).find(node => node.id === graphNode.id);
-        if (a) {
-          // @ts-ignore
-          graphNode.x = a.x;
-          // @ts-ignore
-          graphNode.y = a.y;
-        } else {
-          if (graphNode.children) {
-            // @ts-ignore
-            for (const child of graphNode.children) {
-              // @ts-ignore
-              const b = Object.values(nodes).find(node => node.id === child.id);
-              if (b) {
-                // @ts-ignore
-                child.x = b.x;
-                // @ts-ignore
-                child.y = b.y;
-              }
-            }
-          }
-        }
-        return graphNode;
-    });
-      this.dataStorageService.saveMultilevelGraph(this.allMultiLevelGraph.nodes)
-        .subscribe();
-    } else if (this.displayMode === 'circo') {
-      // @ts-ignore
-      const { nodes } = this.graph2D.body;
-
-      this.graphData.nodes.map(node => {
-        // @ts-ignore
-        const updatedNode = Object.values(nodes).find(graphNode => graphNode.id === node.id);
-        if (updatedNode) {
-          // @ts-ignore
-          node.x = updatedNode.x;
-          // @ts-ignore
-          node.y = updatedNode.y;
-        }
-      });
-
-      this.dataStorageService.saveGraph(this.graphData.nodes, this.displayMode)
-        .subscribe();
-    }
   }
 }

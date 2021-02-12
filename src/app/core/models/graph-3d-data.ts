@@ -1,5 +1,5 @@
-import { Graph3DNode } from './node';
 import { Graph3DEdge } from './edge-3d';
+import { Graph3DNode } from './node-3d';
 
 /**
  * Graph 3d data initialize.

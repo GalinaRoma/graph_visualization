@@ -1,4 +1,12 @@
-import { Graph3DEdge } from './edge-3d';
+import { NeighborConnection } from '../services/dto/node-dto';
+
+/**
+ * IP address.
+ */
+export interface IPAddress {
+  ip: string;
+  mask: string;
+}
 
 /**
  * Node initialize data.
@@ -20,66 +28,26 @@ export interface NodeInitData {
    * Node name.
    */
   name?: string | null;
-  created_at: string;
+  /**
+   * Created at date.
+   */
+  createdAt: string;
   /**
    * Node type.
    */
   type?: string | null;
+  /**
+   * Children list.
+   */
   children?: GraphNode[] | null;
-  networks: {ip: string, mask: string}[] | null;
-  interfaces: {ip: string, mask: string}[] | null;
-
-}
-
-/**
- * Node initialize data.
- */
-export interface Node3DInitData extends NodeInitData {
   /**
-   * Node x position.
+   * Interfaces of device.
    */
-  z: number;
+  interfaces: IPAddress[] | null;
   /**
-   * Node fx position.
+   * Neighbors.
    */
-  fx?: number;
-  /**
-   * Node fy position.
-   */
-  fy?: number;
-  /**
-   * Node fz position.
-   */
-  fz?: number;
-  /**
-   * Neighbor nodes.
-   */
-  neighbors?: Graph3DNode[];
-  /**
-   * Links with neighbors.
-   */
-  links?: Graph3DEdge[];
-
-  childLinks?: Graph3DEdge[];
-  collapsed?: boolean;
-}
-
-export interface NeighborConnectionInitData {
-  neighborId: string;
-  approved: boolean;
-  protocols: string[];
-}
-
-export class NeighborConnection {
-  public neighborId: string;
-  public approved: boolean;
-  public protocols: string[];
-
-  constructor(data: NeighborConnectionInitData) {
-    this.neighborId = data.neighborId;
-    this.approved = data.approved;
-    this.protocols = data.protocols;
-  }
+  neighbors: NeighborConnection[];
 }
 
 /**
@@ -107,13 +75,25 @@ export class GraphNode {
    */
   public type: string | null;
 
-  // tslint:disable-next-line:variable-name
-  public created_at: string;
-
-  public children: GraphNode[] | null;
-  public networks: {ip: string, mask: string}[] | null;
-  public interfaces: {ip: string, mask: string}[] | null;
-
+  /**
+   * Created at date.
+   */
+  public createdAt: string;
+  /**
+   * Children list.
+   */
+  public children?: GraphNode[] | null;
+  /**
+   * Interfaces of device.
+   */
+  public interfaces: IPAddress[] | null;
+  /**
+   * Neighbors.
+   */
+  public neighbors: NeighborConnection[];
+  /**
+   * Image for device calculating on type.
+   */
   public image: string;
 
   public constructor(data: NodeInitData) {
@@ -121,9 +101,9 @@ export class GraphNode {
     this.name = data.name || null;
     this.type = data.type || null;
     this.children = data.children || null;
-    this.networks = data.networks || null;
     this.interfaces = data.interfaces || null;
-    this.created_at = data.created_at;
+    this.neighbors = data.neighbors || null;
+    this.createdAt = data.createdAt;
     this.x = data.x || 0;
     this.y = data.y || 0;
     this.image =
@@ -136,49 +116,5 @@ export class GraphNode {
             data.type === 'plc' ?
               '../assets/plc.svg' :
               '../assets/pc.svg';
-  }
-}
-
-/**
- * Node 3d.
- */
-export class Graph3DNode extends GraphNode {
-  /**
-   * Node x position.
-   */
-  public z: number;
-  /**
-   * Node fx position.
-   */
-  public fx: number | undefined;
-  /**
-   * Node fy position.
-   */
-  public fy: number | undefined;
-  /**
-   * Node fz position.
-   */
-  public fz: number | undefined;
-  /**
-   * Neighbor nodes.
-   */
-  public neighbors: Graph3DNode[];
-  /**
-   * Links with neighbors.
-   */
-  public links: Graph3DEdge[];
-  public childLinks: Graph3DEdge[];
-  public collapsed: boolean;
-
-  public constructor(data: Node3DInitData) {
-    super(data);
-    this.z = data.z || 0;
-    this.fx = data?.fx;
-    this.fy = data?.fy;
-    this.fz = data?.fz;
-    this.neighbors = [];
-    this.links = [];
-    this.childLinks = [];
-    this.collapsed = data.collapsed || false;
   }
 }

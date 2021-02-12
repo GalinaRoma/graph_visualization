@@ -1,8 +1,11 @@
-import {Component, Inject} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {GraphNode} from '../../core/models/node';
-import {GraphEdge} from '../../core/models/edge';
+import { Component, Inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
+import { GraphEdge } from '../../core/models/edge';
+
+/**
+ * Dialog with edge info.
+ */
 @Component({
   selector: 'app-info-edge-dialog',
   templateUrl: 'info-edge-dialog.component.html',
@@ -15,10 +18,10 @@ export class InfoEdgeDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: GraphEdge) {
   }
 
-  onNoClick(): void {
+  /**
+   * Close dialog.
+   */
+  public close(): void {
     this.dialogRef.close();
   }
-
-
-
 }

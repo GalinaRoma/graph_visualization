@@ -1,7 +1,7 @@
 <nav class="nav-panel">
   <mat-form-field appearance="fill" class="layout">
     <mat-label>Select layout</mat-label>
-    <mat-select name="displayMode" [value]="displayMode" (selectionChange)="setDisplayMode($event)">
+    <mat-select [value]="displayMode" (selectionChange)="setDisplayMode($event)">
       <mat-option value="sfdp">SFDP layout</mat-option>
       <mat-option value="multilevel">Group by ip</mat-option>
       <mat-option value="circo">Circo layout</mat-option>
@@ -18,7 +18,7 @@
     </mat-form-field>
     <mat-form-field appearance="fill" class="filter">
       <mat-label>Filter connections</mat-label>
-      <mat-select [formControl]="filter">
+      <mat-select [formControl]="approveFilter">
         <mat-option value="null">All</mat-option>
         <mat-option value="true">Approved</mat-option>
         <mat-option value="false">Not approved</mat-option>

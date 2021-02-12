@@ -14,7 +14,13 @@ export interface EdgeInitData {
    * Target node id.
    */
   to: string;
+  /**
+   * List of protocols.
+   */
   protocols: string[];
+  /**
+   * Approved status.
+   */
   approved: boolean;
 }
 
@@ -34,8 +40,17 @@ export class GraphEdge {
    * Target node id.
    */
   to: string;
+  /**
+   * List of protocols.
+   */
   protocols: string[];
+  /**
+   * Approved status.
+   */
   approved: boolean;
+  /**
+   * Color for edge.
+   */
   color: string;
 
   public constructor(data: EdgeInitData) {

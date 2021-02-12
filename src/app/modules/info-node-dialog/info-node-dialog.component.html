@@ -1,0 +1,28 @@
+<h1>Device</h1>
+<div>
+  <p class="row">
+    <label>Name</label>
+    <span>{{ data.name }}</span>
+  </p>
+  <p class="row">
+    <label>Type</label>
+    <span>{{ data.type }}</span>
+  </p>
+  <ng-container *ngIf="data.type === 'router'">
+    Interfaces
+    <div *ngFor="let interface of data.interfaces">
+      <p class="row">
+        <label>IP address</label>
+        <span>{{ interface.ip }}</span>
+      </p>
+      <p class="row">
+        <label>Mask</label>
+        <span>{{ interface.mask }}</span>
+      </p>
+    </div>
+  </ng-container>
+</div>
+<div>
+  <button class="ok-button" mat-raised-button (click)="close()">Ok</button>
+</div>
+
